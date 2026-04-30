@@ -1,0 +1,10 @@
+node_modules/
+dist/
+disclose-extension.zip
+icons/
+test/screenshots/
+test/results.json
+test/results.xml
+test/iteration-*.md
+*.log
+.DS_Store

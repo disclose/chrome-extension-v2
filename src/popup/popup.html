@@ -1,0 +1,82 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=360, initial-scale=1" />
+    <title>disclose.io</title>
+    <link rel="stylesheet" href="popup.css" />
+  </head>
+  <body>
+    <main id="root" data-state="unknown" aria-live="polite">
+      <header class="brand">
+        <span class="brand__mark" aria-hidden="true">⌖</span>
+        <span class="brand__name">disclose.io</span>
+      </header>
+
+      <section class="hero" id="hero" aria-labelledby="hero-headline">
+        <h1 id="hero-headline" class="hero__headline">Checking…</h1>
+        <p id="hero-detail" class="hero__detail">Looking this site up in the disclose.io directory.</p>
+      </section>
+
+      <section
+        id="retaliation-banner"
+        class="banner banner--alert"
+        role="alert"
+        hidden
+      >
+        <strong>Heads up — researchers have reported retaliation here.</strong>
+        <p id="retaliation-detail" class="banner__detail"></p>
+      </section>
+
+      <section class="why">
+        <details>
+          <summary>Why this matters</summary>
+          <p>
+            A clear, public way to report security problems — plus protection
+            for the people who report them — is now considered table stakes for
+            any organization that takes its users' safety seriously. The
+            <a href="https://disclose.io/framework/" target="_blank" rel="noopener">disclose.io
+            framework</a> defines what "good" looks like, and the
+            <a href="https://directory.disclose.io" target="_blank" rel="noopener">directory</a>
+            tracks who's there.
+          </p>
+        </details>
+      </section>
+
+      <section class="details" id="details" hidden>
+        <details>
+          <summary>Disclosure details</summary>
+          <dl class="details__grid" id="details-grid"></dl>
+          <a id="submit-cta" class="cta cta--primary" href="#" target="_blank" rel="noopener" hidden>
+            Submit a vulnerability →
+          </a>
+        </details>
+      </section>
+
+      <section class="actions">
+        <button id="lookup-btn" class="cta cta--secondary" type="button">
+          Look this up
+        </button>
+        <p id="lookup-status" class="lookup-status" aria-live="polite"></p>
+      </section>
+
+      <section id="lookup-results" class="lookup-results" hidden>
+        <h2>Live lookup result</h2>
+        <ul id="lookup-contacts" class="lookup-contacts"></ul>
+      </section>
+
+      <footer class="footer">
+        <p class="footer__privacy">
+          This extension only sends the current site's domain to disclose.io —
+          never your URL or page contents.
+        </p>
+        <p class="footer__links">
+          <a id="directory-link" href="https://directory.disclose.io" target="_blank" rel="noopener">disclose.io directory</a>
+          ·
+          <a href="https://github.com/disclose/chrome-extension" target="_blank" rel="noopener">about this extension</a>
+        </p>
+      </footer>
+    </main>
+    <script type="module" src="popup.js"></script>
+  </body>
+</html>

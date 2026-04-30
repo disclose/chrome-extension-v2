@@ -1,0 +1,36 @@
+{
+  "manifest_version": 3,
+  "name": "disclose.io",
+  "version": "0.1.0",
+  "description": "See if a website welcomes security researchers — VDP, safe harbor, and disclosure maturity at a glance. Powered by directory.disclose.io.",
+  "minimum_chrome_version": "116",
+  "action": {
+    "default_title": "disclose.io — checking…",
+    "default_popup": "popup.html",
+    "default_icon": {
+      "16": "icons/unknown-16.png",
+      "32": "icons/unknown-32.png",
+      "48": "icons/unknown-48.png",
+      "128": "icons/unknown-128.png"
+    }
+  },
+  "icons": {
+    "16": "icons/level5-16.png",
+    "32": "icons/level5-32.png",
+    "48": "icons/level5-48.png",
+    "128": "icons/level5-128.png"
+  },
+  "background": {
+    "service_worker": "background.js",
+    "type": "module"
+  },
+  "permissions": [
+    "tabs",
+    "storage",
+    "alarms"
+  ],
+  "host_permissions": [
+    "https://directory.disclose.io/*",
+    "https://lookup.disclose.io/*"
+  ]
+}

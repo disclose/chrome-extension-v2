@@ -1,0 +1,25 @@
+{
+  "name": "disclose-chrome-extension",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Browser extension that surfaces vulnerability-disclosure posture for the current site, polling directory.disclose.io live and falling back to lookup.disclose.io on demand.",
+  "type": "module",
+  "scripts": {
+    "build": "bun scripts/build.ts",
+    "test": "bun scripts/test.ts",
+    "iterate": "bun scripts/build.ts && bun scripts/test.ts",
+    "package": "bun scripts/build.ts && cd dist && zip -r ../disclose-extension.zip . -x '*.map' && cd ..",
+    "smoke": "SMOKE=1 bun scripts/test.ts"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.48.0",
+    "@types/bun": "^1.1.0",
+    "@types/chrome": "^0.0.270",
+    "axe-core": "^4.10.0",
+    "esbuild": "^0.24.0",
+    "playwright": "^1.48.0",
+    "sharp": "^0.33.5",
+    "tldts": "^6.1.0",
+    "typescript": "^5.6.0"
+  }
+}

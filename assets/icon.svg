@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128">
+  <defs>
+    <radialGradient id="glow" cx="50%" cy="40%" r="60%">
+      <stop offset="0%" stop-color="__GLOW__"/>
+      <stop offset="100%" stop-color="__BODY__"/>
+    </radialGradient>
+  </defs>
+  <circle cx="64" cy="64" r="58" fill="url(#glow)" stroke="__STROKE__" stroke-width="4"/>
+  <g fill="__FG__" __EXTRA_GROUP_ATTRS__>__GLYPH__</g>
+  __OVERLAY__
+</svg>
