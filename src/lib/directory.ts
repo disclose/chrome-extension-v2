@@ -60,7 +60,7 @@ async function fetchText(url: string, signal?: AbortSignal): Promise<string> {
       signal: controller.signal,
       redirect: 'follow',
       headers: {
-        'User-Agent': 'disclose-chrome-extension/0.1 (+https://github.com/disclose/chrome-extension)',
+        'User-Agent': 'disclose-chrome-extension/0.1 (+https://github.com/disclose/chrome-extension-v2)',
       },
     });
     if (!response.ok) {

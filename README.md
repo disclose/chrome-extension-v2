@@ -1,5 +1,7 @@
 # disclose.io Chrome Extension
 
+> Repo: `disclose/chrome-extension-v2` (private). The previous `disclose/chrome-extension` repo is archived; this is the active codebase.
+
 See, at a glance, whether the website you're visiting welcomes security researchers — and where to report a vulnerability if you find one.
 
 The extension polls [directory.disclose.io](https://directory.disclose.io) for the current site's eTLD+1 and turns the toolbar icon purple based on whether the site has a vulnerability disclosure policy (VDP) and whether it offers researchers safe harbor. When the site isn't in the directory, you can run a deeper lookup against [lookup.disclose.io](https://lookup.disclose.io) on demand.
@@ -45,6 +47,9 @@ bun run package     # produces disclose-extension.zip for Web Store upload
 1. `bun run build`
 2. Open `chrome://extensions` → enable **Developer mode**
 3. Click **Load unpacked** and pick `dist/`
+4. Click the puzzle-piece (🧩) in the Chrome toolbar → pin **disclose.io** so the icon stays visible.
+
+After any code change, run `bun run build` and click the **reload ↻** button on the extension's card in `chrome://extensions`.
 
 ### Project layout
 
