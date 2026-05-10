@@ -5,6 +5,7 @@
   "description": "Browser extension that surfaces vulnerability-disclosure posture for the current site, polling directory.disclose.io live and falling back to lookup.disclose.io on demand.",
   "type": "module",
   "scripts": {
+    "postinstall": "bunx playwright install chromium",
     "build": "bun scripts/build.ts",
     "test": "bun scripts/test.ts",
     "iterate": "bun scripts/build.ts && bun scripts/test.ts",

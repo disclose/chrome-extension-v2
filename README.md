@@ -36,6 +36,7 @@ No new infrastructure: this extension consumes the existing `directory.disclose.
 
 ```sh
 bun install
+bunx playwright install chromium  # one-time: stages the Playwright Chromium build the test runner loads the extension into
 bun run build       # produces dist/
 bun run test        # mocked Playwright suite + axe-core a11y scan
 SMOKE=1 bun run test  # also hits production directory.disclose.io for a regression sanity check
