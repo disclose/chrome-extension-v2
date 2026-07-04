@@ -48,12 +48,98 @@ async function getEvaluation(tabId: number): Promise<TabEvaluation | null> {
   return response?.evaluation ?? null;
 }
 
+// ───────────────────────────────────────────────────────────────────────────
+// NEW (Refined design): presentation helpers. These read fields that already
+// exist on IconState / ProgramSnapshot — no new data is required from the
+// background worker. The hero background per state is driven entirely by CSS
+// via [data-state="…"] selectors in popup.css.
+// ───────────────────────────────────────────────────────────────────────────
+
+const HERO_GLYPH: Record<IconState, string> = {
+  level5: '✦',
+  'safe-harbor': '✓',
+  vdp: '✓',
+  none: '⚠',
+  unknown: '',
+};
+
+const STATUS_PILL: Record<IconState, { text: string; variant: '' | 'solid' | 'neutral' } | null> = {
+  level5: { text: 'In directory · L5', variant: 'solid' },
+  'safe-harbor': { text: 'In directory', variant: '' },
+  vdp: { text: 'In directory', variant: '' },
+  none: { text: 'Not listed', variant: 'neutral' },
+  unknown: null,
+};
+
+function renderHeroIcon(state: IconState): void {
+  setText($('hero-icon'), HERO_GLYPH[state] ?? '');
+}
+
+function renderStatusPill(state: IconState): void {
+  const pill = $('status-pill');
+  const cfg = STATUS_PILL[state];
+  if (!cfg) {
+    show(pill, false);
+    return;
+  }
+  pill.textContent = cfg.text;
+  pill.className = 'pill' + (cfg.variant ? ` pill--${cfg.variant}` : '');
+  show(pill, true);
+}
+
+function renderScore(program: ProgramSnapshot | undefined): void {
+  const row = $('maturity');
+  if (!program || typeof program.maturityScore !== 'number') {
+    show(row, false);
+    return;
+  }
+  setText($('maturity-level'), program.maturityLevel ?? 'Rated');
+  setText($('maturity-score'), program.maturityScore.toFixed(0));
+  show(row, true);
+}
+
+function renderChips(program: ProgramSnapshot | undefined): void {
+  const wrap = $('chips');
+  wrap.innerHTML = '';
+  if (!program) {
+    show(wrap, false);
+    return;
+  }
+
+  const shFull = safeHarborLabel(program.safeHarbor) === 'Full';
+  const chips: Array<{ label: string; yes: boolean }> = [
+    shFull ? { label: 'Safe harbor', yes: true } : { label: 'No safe harbor', yes: false },
+    program.offersBounty ? { label: 'Bug bounty', yes: true } : { label: 'No bounty', yes: false },
+  ];
+  if (program.policyUrl) chips.push({ label: 'Policy', yes: true });
+  if (program.securityTxtUrl) chips.push({ label: 'security.txt', yes: true });
+
+  for (const chip of chips) {
+    const span = document.createElement('span');
+    span.className = `chip ${chip.yes ? 'chip--yes' : 'chip--no'}`;
+    const mark = document.createElement('span');
+    mark.className = 'chip__mark';
+    mark.textContent = chip.yes ? '✓' : '✕';
+    span.appendChild(mark);
+    span.appendChild(document.createTextNode(chip.label));
+    wrap.appendChild(span);
+  }
+  show(wrap, true);
+}
+
+// ───────────────────────────────────────────────────────────────────────────
+
 function renderHero(state: IconState, program?: ProgramSnapshot): void {
   const root = $('root');
   root.dataset.state = state;
   const { headline, detail } = verdictFor(state, program);
   setText($('hero-headline'), headline);
   setText($('hero-detail'), detail);
+  // NEW: glyph, pill, chips and score are part of the resolved hero.
+  renderHeroIcon(state);
+  renderStatusPill(state);
+  renderChips(program);
+  renderScore(program);
 }
 
 function renderDetails(program: ProgramSnapshot | undefined): void {
@@ -148,14 +234,27 @@ function renderLookupContacts(report: LookupReport): void {
 
   for (const contact of nonThreats.slice(0, 8)) {
     const li = document.createElement('li');
+
+    // NEW: card structure with confidence badge + copy button.
+    const head = document.createElement('div');
+    head.className = 'contact__head';
     const label = document.createElement('span');
-    label.className = 'label';
+    label.className = 'contact__label';
     label.textContent = contact.label || contact.type;
-    const meta = document.createElement('span');
-    meta.className = 'meta';
-    meta.textContent = `${contact.type} · ${contact.source} · ${contact.confidence}`;
+    const conf = document.createElement('span');
+    conf.className = `contact__conf contact__conf--${contact.confidence}`;
+    conf.textContent = contact.confidence;
+    head.appendChild(label);
+    head.appendChild(conf);
+
+    const meta = document.createElement('div');
+    meta.className = 'contact__meta';
+    meta.textContent = `${contact.type.replace(/_/g, ' ')} · ${contact.source}`;
+
+    const valueRow = document.createElement('div');
+    valueRow.className = 'contact__value-row';
     const value = document.createElement('span');
-    value.className = 'value';
+    value.className = 'contact__value';
     if (/^https?:\/\//i.test(contact.value)) {
       const a = document.createElement('a');
       a.href = contact.value;
@@ -166,9 +265,21 @@ function renderLookupContacts(report: LookupReport): void {
     } else {
       value.textContent = contact.value;
     }
-    li.appendChild(label);
+    const copy = document.createElement('button');
+    copy.type = 'button';
+    copy.className = 'contact__copy';
+    copy.textContent = 'Copy';
+    copy.addEventListener('click', () => {
+      void navigator.clipboard?.writeText(contact.value);
+      copy.textContent = 'Copied ✓';
+      setTimeout(() => { copy.textContent = 'Copy'; }, 1400);
+    });
+    valueRow.appendChild(value);
+    valueRow.appendChild(copy);
+
+    li.appendChild(head);
     li.appendChild(meta);
-    li.appendChild(value);
+    li.appendChild(valueRow);
     list.appendChild(li);
   }
 

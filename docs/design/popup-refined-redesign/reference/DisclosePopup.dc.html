@@ -1,0 +1,569 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<style>
+  @keyframes dioSpin { to { transform: rotate(360deg); } }
+  @keyframes dioPulse { 0%,100% { opacity: .35; } 50% { opacity: 1; } }
+  @keyframes dioRise { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
+  .dio-select:focus { outline: 2px solid var(--dio-purple, #6c2bd9); outline-offset: 1px; }
+</style>
+</helmet>
+<div style="{{ wrapStyle }}">
+
+  <!-- ===== brand bar ===== -->
+  <div style="display:flex;align-items:center;gap:8px;padding:13px 16px 11px;border-bottom:1px solid var(--dio-border,#e5e7eb)">
+    <span style="display:inline-flex;align-items:center;justify-content:center;width:22px;height:22px;border-radius:6px;background:var(--dio-purple,#6c2bd9);color:#fff;font-size:13px;font-weight:700">⌖</span>
+    <span style="font-weight:650;font-size:13px;letter-spacing:-.01em">disclose.io</span>
+    <sc-if value="{{ pillShow }}" hint-placeholder-val="{{ true }}">
+      <span style="margin-left:2px;font-size:11px;font-weight:600;padding:3px 8px;border-radius:20px;background:{{ pillBg }};color:{{ pillFg }}">{{ pillText }}</span>
+    </sc-if>
+    <button type="button" onClick="{{ toggleTheme }}" title="Toggle theme" style="margin-left:auto;display:inline-flex;align-items:center;justify-content:center;width:28px;height:28px;border-radius:8px;border:1px solid var(--dio-border,#e5e7eb);background:var(--dio-chip,#f9fafb);color:var(--dio-muted,#4b5563);cursor:pointer;font-size:13px">{{ themeGlyph }}</button>
+  </div>
+
+  <div style="padding:14px 16px 16px;display:flex;flex-direction:column;gap:12px">
+
+    <!-- ===== checking ===== -->
+    <sc-if value="{{ isChecking }}" hint-placeholder-val="{{ true }}">
+      <div style="display:flex;align-items:center;gap:11px;padding:16px 14px;border-radius:12px;background:var(--dio-neutral-hero,#f3f4f6);border:1px solid var(--dio-border,#e5e7eb)">
+        <span style="width:16px;height:16px;border-radius:50%;border:2px solid var(--dio-border-strong,#d1d5db);border-top-color:var(--dio-purple,#6c2bd9);animation:dioSpin .7s linear infinite"></span>
+        <div>
+          <div style="font-weight:650;font-size:15px">Checking…</div>
+          <div style="font-size:12.5px;color:var(--dio-muted,#4b5563)">Looking this site up in the disclose.io directory.</div>
+        </div>
+      </div>
+    </sc-if>
+
+    <!-- ===== resolved body ===== -->
+    <sc-if value="{{ isReady }}" hint-placeholder-val="{{ true }}">
+      <div style="display:flex;flex-direction:column;gap:12px;animation:dioRise .28s ease both">
+
+        <!-- hero: refined -->
+        <sc-if value="{{ isRefined }}" hint-placeholder-val="{{ true }}">
+        <div style="border-radius:12px;padding:14px;background:{{ heroBg }};border:1px solid {{ heroBorder }}">
+          <div style="display:flex;align-items:flex-start;gap:11px">
+            <span style="flex:none;display:inline-flex;align-items:center;justify-content:center;width:34px;height:34px;border-radius:9px;background:{{ iconBg }};color:{{ iconColor }};font-size:17px;font-weight:700">{{ iconGlyph }}</span>
+            <div style="min-width:0">
+              <h1 style="margin:0 0 4px;font-size:16px;font-weight:700;letter-spacing:-.01em;color:var(--dio-fg,#111827);text-wrap:balance">{{ headline }}</h1>
+              <p style="margin:0;font-size:12.5px;color:var(--dio-muted,#4b5563)">{{ detail }}</p>
+            </div>
+          </div>
+          <sc-if value="{{ scoreShow }}" hint-placeholder-val="{{ true }}">
+            <div style="display:flex;align-items:center;gap:10px;margin-top:12px;padding-top:11px;border-top:1px solid {{ heroBorder }}">
+              <span style="font-size:11px;font-weight:600;padding:3px 9px;border-radius:20px;background:var(--dio-purple,#6c2bd9);color:#fff">{{ maturityLabel }}</span>
+              <span style="font-size:12px;color:var(--dio-muted,#4b5563)">Maturity score</span>
+              <span style="margin-left:auto;font-size:15px;font-weight:750;color:var(--dio-purple-deep,#4c1d95)">{{ scoreText }}</span>
+            </div>
+          </sc-if>
+        </div>
+        </sc-if>
+
+        <!-- hero: signal (score-forward) -->
+        <sc-if value="{{ isSignal }}" hint-placeholder-val="{{ false }}">
+        <div style="border-radius:12px;padding:15px;background:{{ heroBg }};border:1px solid {{ heroBorder }}">
+          <div style="display:flex;align-items:center;gap:14px">
+            <div style="{{ ringStyle }}">
+              <div style="width:44px;height:44px;border-radius:50%;background:var(--dio-bg,#fff);display:flex;flex-direction:column;align-items:center;justify-content:center;line-height:1">
+                <sc-if value="{{ scoreShow }}" hint-placeholder-val="{{ true }}">
+                  <span style="font-size:16px;font-weight:750;color:var(--dio-purple-deep,#4c1d95)">{{ scoreText }}</span>
+                  <span style="font-size:8px;font-weight:600;color:var(--dio-faint,#6b7280);letter-spacing:.03em;margin-top:1px">/ 100</span>
+                </sc-if>
+                <sc-if value="{{ noScore }}" hint-placeholder-val="{{ false }}">
+                  <span style="font-size:20px;color:{{ iconColor }}">{{ iconGlyph }}</span>
+                </sc-if>
+              </div>
+            </div>
+            <div style="min-width:0">
+              <h1 style="margin:0 0 4px;font-size:15px;font-weight:700;letter-spacing:-.01em;color:var(--dio-fg,#111827);text-wrap:balance">{{ headline }}</h1>
+              <p style="margin:0;font-size:12px;color:var(--dio-muted,#4b5563)">{{ detail }}</p>
+            </div>
+          </div>
+          <sc-if value="{{ meterShow }}" hint-placeholder-val="{{ false }}">
+            <div style="display:flex;align-items:center;gap:5px;margin-top:13px;padding-top:12px;border-top:1px solid {{ heroBorder }}">
+              <span style="font-size:9.5px;font-weight:700;color:var(--dio-faint,#6b7280);letter-spacing:.04em;margin-right:3px">MATURITY</span>
+              <sc-for list="{{ segments }}" as="seg" hint-placeholder-count="5">
+                <span style="flex:1;height:22px;border-radius:5px;background:{{ seg.fill }};display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;color:{{ seg.txtColor }}">{{ seg.n }}</span>
+              </sc-for>
+            </div>
+          </sc-if>
+        </div>
+        </sc-if>
+
+        <!-- hero: compact (dense / researcher) -->
+        <sc-if value="{{ isCompact }}" hint-placeholder-val="{{ false }}">
+        <div style="display:flex;flex-direction:column;gap:8px">
+          <div style="display:flex;align-items:center;gap:10px;padding:11px 12px;border-radius:10px;background:{{ heroBg }};border:1px solid {{ heroBorder }}">
+            <span style="flex:none;width:30px;height:30px;border-radius:8px;background:{{ iconBg }};color:{{ iconColor }};display:flex;align-items:center;justify-content:center;font-size:15px;font-weight:700">{{ iconGlyph }}</span>
+            <div style="min-width:0;flex:1">
+              <div style="font-weight:700;font-size:13.5px;letter-spacing:-.01em;color:var(--dio-fg,#111827)">{{ shortHeadline }}</div>
+              <div style="font-size:11px;color:var(--dio-muted,#4b5563);font-family:ui-monospace,Menlo,monospace;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ domain }}</div>
+            </div>
+            <sc-if value="{{ scoreShow }}" hint-placeholder-val="{{ true }}">
+              <span style="flex:none;font-size:13px;font-weight:750;color:var(--dio-purple-deep,#4c1d95);background:var(--dio-bg,#fff);border:1px solid {{ heroBorder }};border-radius:8px;padding:3px 8px">{{ scoreText }}</span>
+            </sc-if>
+          </div>
+          <sc-if value="{{ primaryContactShow }}" hint-placeholder-val="{{ false }}">
+            <div style="display:flex;align-items:center;gap:8px;padding:8px 10px;border:1px solid var(--dio-border,#e5e7eb);border-radius:9px;background:var(--dio-chip,#f9fafb)">
+              <span style="font-size:10px;font-weight:700;color:var(--dio-faint,#6b7280);flex:none;letter-spacing:.04em">REPORT TO</span>
+              <code style="flex:1;min-width:0;font-size:12px;color:var(--dio-purple-deep,#4c1d95);word-break:break-all;font-family:ui-monospace,Menlo,monospace">{{ primaryContact }}</code>
+              <button type="button" onClick="{{ primaryContactCopy }}" style="flex:none;font-size:11px;font-weight:600;padding:4px 9px;border-radius:6px;border:1px solid var(--dio-purple,#6c2bd9);background:var(--dio-bg,#fff);color:var(--dio-purple,#6c2bd9);cursor:pointer">{{ primaryContactLabel }}</button>
+            </div>
+          </sc-if>
+        </div>
+        </sc-if>
+
+        <!-- attribute chips -->
+        <sc-if value="{{ chipsShow }}" hint-placeholder-val="{{ true }}">
+          <div style="display:flex;flex-wrap:wrap;gap:6px">
+            <sc-for list="{{ chips }}" as="chip" hint-placeholder-count="3">
+              <span style="display:inline-flex;align-items:center;gap:5px;font-size:12px;font-weight:550;padding:5px 9px;border-radius:8px;background:var(--dio-chip,#f9fafb);border:1px solid var(--dio-border,#e5e7eb);color:var(--dio-fg,#111827)">
+                <span style="color:{{ chip.dot }};font-weight:700">{{ chip.mark }}</span>{{ chip.label }}
+              </span>
+            </sc-for>
+          </div>
+        </sc-if>
+
+        <!-- retaliation -->
+        <sc-if value="{{ retaliationShow }}" hint-placeholder-val="{{ true }}">
+          <div role="alert" style="border-radius:10px;background:var(--dio-alert-bg,#fef2f2);border:1px solid var(--dio-alert,#b91c1c);border-left-width:4px;padding:11px 12px;animation:dioRise .3s ease both">
+            <strong style="display:block;color:var(--dio-alert,#b91c1c);font-size:12.5px;margin-bottom:3px">⚑ Researchers have reported retaliation here</strong>
+            <span style="font-size:12px;color:var(--dio-fg,#111827)">{{ retaliationDetail }}</span>
+          </div>
+        </sc-if>
+
+        <!-- why this matters -->
+        <div style="border-top:1px solid var(--dio-border,#e5e7eb);padding-top:10px">
+          <button type="button" onClick="{{ toggleWhy }}" style="display:flex;align-items:center;gap:7px;width:100%;padding:0;background:none;border:none;cursor:pointer;font-weight:600;font-size:13px;color:var(--dio-purple,#6c2bd9)">
+            <span style="display:inline-block;transition:transform .2s;transform:rotate({{ whyCaret }}deg);font-size:10px">▶</span>Why this matters
+          </button>
+          <sc-if value="{{ whyOpen }}" hint-placeholder-val="{{ false }}">
+            <p style="margin:8px 0 0;font-size:12.5px;color:var(--dio-muted,#4b5563)">A clear, public way to report security problems — plus protection for the people who report them — is table stakes for any organization that takes its users' safety seriously. The <span style="color:var(--dio-purple,#6c2bd9);font-weight:550">disclose.io framework</span> defines what "good" looks like.</p>
+          </sc-if>
+        </div>
+
+        <!-- disclosure details -->
+        <sc-if value="{{ detailsAvail }}" hint-placeholder-val="{{ false }}">
+          <div style="border-top:1px solid var(--dio-border,#e5e7eb);padding-top:10px">
+            <button type="button" onClick="{{ toggleDetails }}" style="display:flex;align-items:center;gap:7px;width:100%;padding:0;background:none;border:none;cursor:pointer;font-weight:600;font-size:13px;color:var(--dio-purple,#6c2bd9)">
+              <span style="display:inline-block;transition:transform .2s;transform:rotate({{ detailsCaret }}deg);font-size:10px">▶</span>Disclosure details
+            </button>
+            <sc-if value="{{ detailsOpen }}" hint-placeholder-val="{{ false }}">
+              <div style="margin-top:9px;animation:dioRise .22s ease both">
+                <dl style="display:grid;grid-template-columns:max-content 1fr;gap:6px 12px;margin:0 0 11px;font-size:12.5px">
+                  <sc-for list="{{ detailRows }}" as="row" hint-placeholder-count="4">
+                    <dt style="font-weight:600;color:var(--dio-fg,#111827)">{{ row.label }}</dt>
+                    <dd style="margin:0;word-break:break-word;color:{{ row.color }}">{{ row.value }}</dd>
+                  </sc-for>
+                </dl>
+                <sc-if value="{{ submitShow }}" hint-placeholder-val="{{ true }}">
+                  <a href="#" style="display:block;text-align:center;padding:9px 12px;border-radius:9px;background:var(--dio-purple,#6c2bd9);color:#fff;text-decoration:none;font-weight:650;font-size:13px">Submit a vulnerability →</a>
+                </sc-if>
+              </div>
+            </sc-if>
+          </div>
+        </sc-if>
+
+        <!-- actions -->
+        <div style="display:flex;flex-direction:column;gap:7px">
+          <button type="button" onClick="{{ onLookup }}" disabled="{{ lookupRunning }}" style="display:flex;align-items:center;justify-content:center;gap:8px;width:100%;padding:10px 12px;border-radius:9px;background:var(--dio-bg,#fff);color:var(--dio-purple,#6c2bd9);border:1px solid var(--dio-purple,#6c2bd9);font-weight:650;font-size:13px;cursor:pointer;opacity:{{ lookupBtnOpacity }}">
+            <sc-if value="{{ lookupRunning }}" hint-placeholder-val="{{ false }}">
+              <span style="width:13px;height:13px;border-radius:50%;border:2px solid var(--dio-purple-soft,#ede9fe);border-top-color:var(--dio-purple,#6c2bd9);animation:dioSpin .7s linear infinite"></span>
+            </sc-if>
+            {{ lookupBtnLabel }}
+          </button>
+          <sc-if value="{{ lookupStatusShow }}" hint-placeholder-val="{{ false }}">
+            <p style="margin:0;font-size:12px;color:var(--dio-muted,#4b5563)">{{ lookupStatus }}</p>
+          </sc-if>
+        </div>
+
+        <!-- lookup results -->
+        <sc-if value="{{ lookupResultsShow }}" hint-placeholder-val="{{ false }}">
+          <div style="border-top:1px solid var(--dio-border,#e5e7eb);padding-top:11px;animation:dioRise .3s ease both">
+            <h2 style="margin:0 0 8px;font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.04em;color:var(--dio-faint,#6b7280)">Live lookup result</h2>
+            <div style="display:flex;flex-direction:column;gap:7px">
+              <sc-for list="{{ lookupContacts }}" as="c" hint-placeholder-count="2">
+                <div style="border:1px solid var(--dio-border,#e5e7eb);border-radius:9px;padding:9px 10px;background:var(--dio-chip,#f9fafb)">
+                  <div style="display:flex;align-items:center;gap:6px">
+                    <span style="font-weight:650;font-size:12.5px">{{ c.label }}</span>
+                    <span style="font-size:10.5px;font-weight:600;padding:1px 6px;border-radius:5px;background:{{ c.confBg }};color:{{ c.confFg }}">{{ c.confidence }}</span>
+                  </div>
+                  <div style="font-size:11px;color:var(--dio-faint,#6b7280);margin:1px 0 3px">{{ c.meta }}</div>
+                  <div style="display:flex;align-items:center;gap:8px">
+                    <code style="flex:1;min-width:0;font-size:12px;color:var(--dio-purple-deep,#4c1d95);word-break:break-all;font-family:ui-monospace,SFMono-Regular,Menlo,monospace">{{ c.value }}</code>
+                    <button type="button" onClick="{{ c.copy }}" style="flex:none;font-size:11px;font-weight:600;padding:4px 8px;border-radius:6px;border:1px solid var(--dio-border,#e5e7eb);background:var(--dio-bg,#fff);color:var(--dio-purple,#6c2bd9);cursor:pointer">{{ c.copyLabel }}</button>
+                  </div>
+                </div>
+              </sc-for>
+              <sc-if value="{{ lookupEmpty }}" hint-placeholder-val="{{ false }}">
+                <div style="font-size:12.5px;color:var(--dio-muted,#4b5563);padding:2px">No published security contact found for this site.</div>
+              </sc-if>
+            </div>
+          </div>
+        </sc-if>
+
+      </div>
+    </sc-if>
+
+    <!-- footer -->
+    <div style="border-top:1px solid var(--dio-border,#e5e7eb);padding-top:10px;font-size:11px;color:var(--dio-faint,#6b7280)">
+      <p style="margin:0 0 6px">This extension only sends the current site's domain to disclose.io — never your URL or page contents.</p>
+      <p style="margin:0"><span style="color:var(--dio-purple,#6c2bd9);font-weight:550">disclose.io directory</span> · <span style="color:var(--dio-purple,#6c2bd9);font-weight:550">about this extension</span></p>
+    </div>
+  </div>
+
+  <!-- ===== prototype control strip (not part of the extension) ===== -->
+  <div style="border-top:1px dashed var(--dio-border-strong,#d1d5db);background:var(--dio-chip,#f9fafb);padding:9px 14px;display:flex;align-items:center;gap:8px;font-size:11px">
+    <span style="font-weight:650;color:var(--dio-faint,#6b7280);letter-spacing:.03em;text-transform:uppercase;font-size:9.5px;flex:none">Demo</span>
+    <select class="dio-select" onChange="{{ onSite }}" value="{{ siteSlug }}" style="flex:1;min-width:0;font-size:11.5px;padding:5px 6px;border-radius:7px;border:1px solid var(--dio-border-strong,#d1d5db);background:var(--dio-bg,#fff);color:var(--dio-fg,#111827)">
+      <sc-for list="{{ sites }}" as="s" hint-placeholder-count="5">
+        <option value="{{ s.slug }}">{{ s.menuLabel }}</option>
+      </sc-for>
+    </select>
+    <button type="button" onClick="{{ replay }}" title="Replay Checking…" style="flex:none;font-size:11px;font-weight:600;padding:5px 9px;border-radius:7px;border:1px solid var(--dio-border-strong,#d1d5db);background:var(--dio-bg,#fff);color:var(--dio-muted,#4b5563);cursor:pointer">↻ Replay</button>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:376,&quot;height&quot;:640},&quot;variant&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;refined&quot;,&quot;signal&quot;,&quot;compact&quot;],&quot;default&quot;:&quot;refined&quot;,&quot;tsType&quot;:&quot;string&quot;},&quot;theme&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;light&quot;,&quot;dark&quot;],&quot;default&quot;:&quot;light&quot;,&quot;tsType&quot;:&quot;string&quot;},&quot;site&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;level5-example.test&quot;,&quot;safeharbor-example.test&quot;,&quot;vdp-only-example.test&quot;,&quot;unknown-example.test&quot;,&quot;acme-corp.test&quot;],&quot;default&quot;:&quot;level5-example.test&quot;,&quot;tsType&quot;:&quot;string&quot;}}">
+class Component extends DCLogic {
+  state = {
+    slug: null,
+    phase: 'checking',
+    whyOpen: false,
+    detailsOpen: false,
+    lookupPhase: 'idle', // idle | running | done
+    theme: null,
+    copied: {},
+  };
+
+  // ---- mock directory ----
+  get SITES() {
+    return [
+      {
+        slug: 'level5-example.test', menuLabel: 'level5-example.test — Level 5', state: 'level5',
+        program: {
+          programName: 'Level5 Example', maturityLevel: 'Level 5', maturityScore: 92.0,
+          safeHarbor: 'Full', offersBounty: true, offersSwag: true,
+          policyUrl: 'https://level5-example.test/security-policy',
+          contactUrl: 'https://level5-example.test/report',
+          contactEmail: 'security@level5-example.test',
+          securityTxtUrl: 'https://level5-example.test/.well-known/security.txt',
+          directoryUrl: 'https://directory.disclose.io/level5-example',
+        },
+        lookup: [
+          { type: 'security_txt', value: 'https://level5-example.test/.well-known/security.txt', confidence: 'high', source: 'security.txt', label: 'security.txt policy' },
+          { type: 'bug_bounty', value: 'https://level5-example.test/report', confidence: 'high', source: 'diodb', label: 'Bug bounty program' },
+          { type: 'email', value: 'security@level5-example.test', confidence: 'high', source: 'security.txt', label: 'security@ inbox' },
+        ],
+      },
+      {
+        slug: 'safeharbor-example.test', menuLabel: 'safeharbor-example.test — Safe harbor', state: 'safe-harbor',
+        program: {
+          programName: 'Safe Harbor Example', maturityLevel: 'Level 3', maturityScore: 68.0,
+          safeHarbor: 'Full', offersBounty: false,
+          policyUrl: 'https://safeharbor-example.test/security',
+          contactEmail: 'security@safeharbor-example.test',
+          securityTxtUrl: 'https://safeharbor-example.test/.well-known/security.txt',
+          directoryUrl: 'https://directory.disclose.io/safeharbor-example',
+        },
+        lookup: [
+          { type: 'email', value: 'security@safeharbor-example.test', confidence: 'high', source: 'security.txt', label: 'security@ inbox' },
+          { type: 'security_txt', value: 'https://safeharbor-example.test/.well-known/security.txt', confidence: 'high', source: 'security.txt', label: 'security.txt policy' },
+        ],
+      },
+      {
+        slug: 'vdp-only-example.test', menuLabel: 'vdp-only-example.test — VDP only', state: 'vdp',
+        program: {
+          programName: 'VDP Only Example', maturityLevel: 'Level 1', maturityScore: 34.0,
+          safeHarbor: 'None', offersBounty: false,
+          policyUrl: 'https://vdp-only-example.test/security',
+          contactEmail: 'security@vdp-only-example.test',
+          directoryUrl: 'https://directory.disclose.io/vdp-only-example',
+        },
+        lookup: [
+          { type: 'email', value: 'security@vdp-only-example.test', confidence: 'medium', source: 'policy page', label: 'security@ inbox' },
+        ],
+      },
+      {
+        slug: 'unknown-example.test', menuLabel: 'unknown-example.test — Not listed ⚑', state: 'none',
+        program: null,
+        retaliation: 'Retaliation history (2024-09-01): legal threat against a good-faith researcher.',
+        lookup: [
+          { type: 'email', value: 'security@unknown-example.test', confidence: 'medium', source: 'convention', label: 'security@ (guessed)' },
+          { type: 'abuse_contact', value: 'abuse@unknown-example.test', confidence: 'low', source: 'whois', label: 'Abuse contact' },
+        ],
+      },
+      {
+        slug: 'acme-corp.test', menuLabel: 'acme-corp.test — Not listed', state: 'none',
+        program: null,
+        lookup: [],
+      },
+    ];
+  }
+
+  get site() {
+    const slug = this.state.slug ?? this.props.site ?? this.SITES[0].slug;
+    return this.SITES.find((s) => s.slug === slug) ?? this.SITES[0];
+  }
+
+  get theme() {
+    return this.state.theme ?? this.props.theme ?? 'light';
+  }
+
+  get variant() {
+    return this.props.variant ?? 'refined';
+  }
+
+  componentDidMount() {
+    this.startCheck();
+  }
+
+  componentWillUnmount() {
+    clearTimeout(this._t);
+  }
+
+  startCheck() {
+    clearTimeout(this._t);
+    this.setState({ phase: 'checking', lookupPhase: 'idle', whyOpen: false, detailsOpen: false, copied: {} });
+    this._t = setTimeout(() => this.setState({ phase: 'ready' }), 650);
+  }
+
+  selectSite(slug) {
+    this.setState({ slug }, () => this.startCheck());
+  }
+
+  runLookup() {
+    if (this.state.lookupPhase === 'running') return;
+    this.setState({ lookupPhase: 'running' });
+    clearTimeout(this._lt);
+    this._lt = setTimeout(() => this.setState({ lookupPhase: 'done' }), 1300);
+  }
+
+  // ---- palettes ----
+  themeTokens() {
+    const light = {
+      '--dio-bg': '#ffffff', '--dio-surface': '#ffffff', '--dio-fg': '#111827',
+      '--dio-muted': '#4b5563', '--dio-faint': '#6b7280', '--dio-border': '#e5e7eb',
+      '--dio-border-strong': '#d1d5db', '--dio-purple': '#6c2bd9', '--dio-purple-deep': '#4c1d95',
+      '--dio-purple-soft': '#ede9fe', '--dio-purple-softer': '#f5f3ff',
+      '--dio-cel-a': '#ede9fe', '--dio-cel-b': '#fce7f3', '--dio-alert': '#b91c1c',
+      '--dio-alert-bg': '#fef2f2', '--dio-warn': '#b45309', '--dio-positive': '#047857',
+      '--dio-chip': '#f9fafb', '--dio-neutral-hero': '#f3f4f6',
+    };
+    const dark = {
+      '--dio-bg': '#0f172a', '--dio-surface': '#131c31', '--dio-fg': '#f1f5f9',
+      '--dio-muted': '#c3cde0', '--dio-faint': '#94a3b8', '--dio-border': '#243247',
+      '--dio-border-strong': '#3a4a63', '--dio-purple': '#b39dfb', '--dio-purple-deep': '#d6cbfd',
+      '--dio-purple-soft': '#2c2a5e', '--dio-purple-softer': '#211f45',
+      '--dio-cel-a': '#312e81', '--dio-cel-b': '#5b2a63', '--dio-alert': '#f87171',
+      '--dio-alert-bg': '#3a1d20', '--dio-warn': '#fbbf24', '--dio-positive': '#34d399',
+      '--dio-chip': '#141d31', '--dio-neutral-hero': '#1a2437',
+    };
+    return this.theme === 'dark' ? dark : light;
+  }
+
+  verdict(state, program) {
+    switch (state) {
+      case 'level5':
+        return { headline: '✨ Best-practice security disclosure', detail: program ? `${program.programName} is recognized at Maturity Level 5 — a clear, researcher-safe way to report security issues.` : 'This site has reached the highest disclosure-maturity tier.' };
+      case 'safe-harbor':
+        return { headline: '✓ Welcomes security reports — researcher-safe', detail: program ? `${program.programName} accepts security research and protects researchers acting in good faith.` : 'This site has a published policy and full safe harbor.' };
+      case 'vdp':
+        return { headline: '✓ Has a way to report security issues', detail: program ? `${program.programName} publishes a security contact, but does not offer full safe-harbor protections for researchers.` : 'This site has a security contact, but no full safe harbor.' };
+      case 'none':
+      default:
+        return { headline: '⚠ No published way to report security problems', detail: 'This site is not in the disclose.io directory. Researchers may have nowhere clear to send security findings.' };
+    }
+  }
+
+  heroStyle(state, tk) {
+    switch (state) {
+      case 'level5': return { bg: `linear-gradient(135deg, ${tk['--dio-cel-a']} 0%, ${tk['--dio-cel-b']} 100%)`, border: tk['--dio-purple'], iconBg: '#ffffff', iconColor: tk['--dio-warn'], glyph: '✦' };
+      case 'safe-harbor': return { bg: tk['--dio-purple-soft'], border: tk['--dio-purple'], iconBg: tk['--dio-bg'], iconColor: tk['--dio-purple'], glyph: '✓' };
+      case 'vdp': return { bg: tk['--dio-purple-softer'], border: tk['--dio-border'], iconBg: tk['--dio-bg'], iconColor: tk['--dio-purple'], glyph: '✓' };
+      case 'none':
+      default: return { bg: tk['--dio-neutral-hero'], border: tk['--dio-border'], iconBg: tk['--dio-bg'], iconColor: tk['--dio-warn'], glyph: '⚠' };
+    }
+  }
+
+  buildChips(program, tk) {
+    if (!program) return [];
+    const sh = (program.safeHarbor || '').toLowerCase();
+    const chips = [];
+    chips.push(sh === 'full'
+      ? { label: 'Safe harbor', mark: '✓', dot: tk['--dio-positive'] }
+      : { label: 'No safe harbor', mark: '✕', dot: tk['--dio-faint'] });
+    chips.push(program.offersBounty
+      ? { label: 'Bug bounty', mark: '✓', dot: tk['--dio-positive'] }
+      : { label: 'No bounty', mark: '✕', dot: tk['--dio-faint'] });
+    if (program.policyUrl) chips.push({ label: 'Policy', mark: '✓', dot: tk['--dio-positive'] });
+    if (program.securityTxtUrl) chips.push({ label: 'security.txt', mark: '✓', dot: tk['--dio-positive'] });
+    return chips;
+  }
+
+  detailRows(program, tk) {
+    if (!program) return [];
+    const rows = [];
+    const push = (label, value, link) => { if (value) rows.push({ label, value, color: link ? tk['--dio-purple'] : tk['--dio-muted'] }); };
+    push('Program', program.programName);
+    push('Maturity', program.maturityLevel ? `${program.maturityLevel}${typeof program.maturityScore === 'number' ? ` (${program.maturityScore.toFixed(1)})` : ''}` : null);
+    push('Safe harbor', program.safeHarbor);
+    push('Bounty', program.offersBounty === true ? 'Yes' : program.offersBounty === false ? 'No' : null);
+    push('Policy', program.policyUrl, true);
+    push('Contact', program.contactUrl ?? program.contactEmail, true);
+    push('security.txt', program.securityTxtUrl, true);
+    push('Directory', program.directoryUrl, true);
+    return rows;
+  }
+
+  confColors(conf, tk) {
+    if (conf === 'high') return { bg: this.theme === 'dark' ? '#14361f' : '#dcfce7', fg: tk['--dio-positive'] };
+    if (conf === 'low') return { bg: tk['--dio-alert-bg'], fg: tk['--dio-warn'] };
+    return { bg: tk['--dio-purple-soft'], fg: tk['--dio-purple'] };
+  }
+
+  copyValue(v, key) {
+    try { navigator.clipboard && navigator.clipboard.writeText(v); } catch (e) {}
+    this.setState({ copied: { ...this.state.copied, [key]: true } });
+    clearTimeout(this._ct);
+    this._ct = setTimeout(() => this.setState({ copied: { ...this.state.copied, [key]: false } }), 1400);
+  }
+
+  renderVals() {
+    const tk = this.themeTokens();
+    const site = this.site;
+    const program = site.program;
+    const state = site.state;
+    const isReady = this.state.phase === 'ready';
+    const v = this.verdict(state, program);
+    const hs = this.heroStyle(state, tk);
+    const lookupDone = this.state.lookupPhase === 'done';
+    const lookupRunning = this.state.lookupPhase === 'running';
+
+    // lookup contacts (exclude retaliation marker; retaliation shown via site.retaliation)
+    const contacts = (site.lookup || []).map((c, i) => {
+      const cc = this.confColors(c.confidence, tk);
+      const key = site.slug + ':' + i;
+      const copied = !!this.state.copied[key];
+      return {
+        label: c.label, value: c.value, confidence: c.confidence,
+        confBg: cc.bg, confFg: cc.fg,
+        meta: `${c.type.replace(/_/g, ' ')} · ${c.source}`,
+        copy: () => this.copyValue(c.value, key),
+        copyLabel: copied ? 'Copied ✓' : 'Copy',
+      };
+    });
+
+    const pillMap = {
+      level5: { text: 'In directory · L5', bg: tk['--dio-purple'], fg: '#fff' },
+      'safe-harbor': { text: 'In directory', bg: tk['--dio-purple-soft'], fg: tk['--dio-purple'] },
+      vdp: { text: 'In directory', bg: tk['--dio-purple-soft'], fg: tk['--dio-purple'] },
+      none: { text: 'Not listed', bg: tk['--dio-neutral-hero'], fg: tk['--dio-faint'] },
+    };
+    const pill = pillMap[state];
+
+    return {
+      wrapStyle: {
+        ...tk,
+        width: '376px',
+        fontFamily: "system-ui,-apple-system,'Segoe UI',sans-serif",
+        fontSize: '14px', lineHeight: 1.45,
+        color: 'var(--dio-fg,#111827)', background: 'var(--dio-bg,#fff)',
+        borderRadius: '14px', overflow: 'hidden',
+        border: '1px solid var(--dio-border,#e5e7eb)',
+      },
+      themeGlyph: this.theme === 'dark' ? '☀' : '☾',
+      toggleTheme: () => this.setState({ theme: this.theme === 'dark' ? 'light' : 'dark' }),
+
+      isChecking: !isReady,
+      isReady,
+
+      pillShow: isReady,
+      pillText: pill.text, pillBg: pill.bg, pillFg: pill.fg,
+
+      headline: v.headline, detail: v.detail,
+      heroBg: hs.bg, heroBorder: hs.border, iconBg: hs.iconBg, iconColor: hs.iconColor, iconGlyph: hs.glyph,
+
+      scoreShow: !!(program && typeof program.maturityScore === 'number'),
+      maturityLabel: program ? program.maturityLevel : '',
+      scoreText: program && typeof program.maturityScore === 'number' ? program.maturityScore.toFixed(0) : '',
+
+      chipsShow: !!program,
+      chips: this.buildChips(program, tk),
+
+      retaliationShow: isReady && !!site.retaliation && lookupDone,
+      retaliationDetail: site.retaliation || '',
+
+      whyOpen: this.state.whyOpen,
+      whyCaret: this.state.whyOpen ? 90 : 0,
+      toggleWhy: () => this.setState({ whyOpen: !this.state.whyOpen }),
+
+      detailsAvail: !!program,
+      detailsOpen: this.state.detailsOpen,
+      detailsCaret: this.state.detailsOpen ? 90 : 0,
+      toggleDetails: () => this.setState({ detailsOpen: !this.state.detailsOpen }),
+      detailRows: this.detailRows(program, tk),
+      submitShow: !!(program && (program.contactUrl || program.policyUrl)),
+
+      onLookup: () => this.runLookup(),
+      lookupRunning,
+      lookupBtnLabel: lookupRunning ? 'Looking up…' : lookupDone ? 'Re-run live lookup' : program ? 'Re-scan with full lookup' : 'Look this up',
+      lookupBtnOpacity: lookupRunning ? 0.75 : 1,
+      lookupStatusShow: lookupRunning || lookupDone,
+      lookupStatus: lookupRunning ? 'Asking lookup.disclose.io…' : lookupDone ? `Done in 1.3s · ${contacts.length} contact${contacts.length === 1 ? '' : 's'} found` : '',
+
+      lookupResultsShow: lookupDone,
+      lookupContacts: contacts,
+      lookupEmpty: lookupDone && contacts.length === 0,
+
+      // ---- variant switches ----
+      isRefined: this.variant === 'refined',
+      isSignal: this.variant === 'signal',
+      isCompact: this.variant === 'compact',
+
+      // ---- signal: gauge + maturity meter ----
+      noScore: !(program && typeof program.maturityScore === 'number'),
+      ringStyle: (() => {
+        const score = program && typeof program.maturityScore === 'number' ? program.maturityScore : 0;
+        const deg = Math.round(score * 3.6);
+        return {
+          flex: 'none', width: '58px', height: '58px', borderRadius: '50%',
+          background: `conic-gradient(${tk['--dio-purple']} ${deg}deg, ${tk['--dio-border']} 0deg)`,
+          display: 'flex', alignItems: 'center', justifyContent: 'center',
+        };
+      })(),
+      segments: (() => {
+        const n = program ? (parseInt((program.maturityLevel || '').replace(/\D/g, ''), 10) || 0) : 0;
+        return [1, 2, 3, 4, 5].map((i) => ({
+          fill: i <= n ? tk['--dio-purple'] : tk['--dio-border'],
+          txtColor: i <= n ? '#fff' : tk['--dio-faint'],
+          n: i,
+        }));
+      })(),
+      meterShow: !!program,
+
+      // ---- compact: status strip + primary contact ----
+      domain: site.slug,
+      dotColor: state === 'none' ? tk['--dio-warn'] : (state === 'level5' ? tk['--dio-purple'] : tk['--dio-positive']),
+      shortHeadline: { level5: 'Best-practice disclosure', 'safe-harbor': 'Welcomes reports — researcher-safe', vdp: 'Reportable — no full safe harbor', none: 'Not in the disclose.io directory' }[state],
+      primaryContactShow: !!(program && (program.contactEmail || program.contactUrl)),
+      primaryContact: program ? (program.contactEmail || program.contactUrl || '') : '',
+      primaryContactCopy: () => this.copyValue(program ? (program.contactEmail || program.contactUrl || '') : '', site.slug + ':primary'),
+      primaryContactLabel: this.state.copied[site.slug + ':primary'] ? 'Copied ✓' : 'Copy',
+
+      // demo strip
+      sites: this.SITES,
+      siteSlug: site.slug,
+      onSite: (e) => this.selectSite(e.target.value),
+      replay: () => this.startCheck(),
+    };
+  }
+}
+</script>
+</body>
+</html>
