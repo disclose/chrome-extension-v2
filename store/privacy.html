@@ -1,0 +1,74 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Privacy Policy — disclose.io browser extension</title>
+<style>
+  :root { --brand:#673AB6; --deep:#512DA8; --ink:#1f2430; --muted:#5b6472; --line:#e7e3f1; --soft:#f6f3fc; }
+  * { box-sizing:border-box; }
+  body { margin:0; font-family:'Noto Sans',system-ui,-apple-system,"Segoe UI",sans-serif;
+    color:var(--ink); line-height:1.6; background:#fff; }
+  .wrap { max-width:760px; margin:0 auto; padding:0 24px 80px; }
+  header { background:linear-gradient(135deg,var(--deep),var(--brand)); color:#fff; padding:44px 24px; margin-bottom:40px; }
+  header .inner { max-width:760px; margin:0 auto; display:flex; align-items:center; gap:14px; }
+  header svg { width:40px; height:40px; flex:none; }
+  header h1 { margin:0; font-size:26px; font-weight:800; letter-spacing:-0.01em; }
+  header .eff { max-width:760px; margin:14px auto 0; font-size:14px; opacity:.9; }
+  h2 { color:var(--deep); font-size:19px; margin:34px 0 8px; }
+  table { border-collapse:collapse; width:100%; margin:14px 0; font-size:14.5px; }
+  th, td { text-align:left; padding:9px 12px; border:1px solid var(--line); vertical-align:top; }
+  th { background:var(--soft); }
+  code { background:var(--soft); padding:1px 6px; border-radius:5px; font-size:0.92em; }
+  a { color:var(--brand); }
+  ul { padding-left:20px; }
+  .muted { color:var(--muted); font-size:14px; }
+</style>
+</head>
+<body>
+<header>
+  <div class="inner">
+    <svg viewBox="0 0 400 400" xmlns="http://www.w3.org/2000/svg"><circle cx="200" cy="200" r="200" fill="#fff"/><path fill="#673AB6" d="M241.5 279.4h-71c-9.4 0-18.3-3.7-25-10.3l-18.9-18.9c-3.9-3.9-9.3-5.7-14.7-5l-52.8 6.6C53.2 235.6 50 218.2 50 200c0-15.4 2.3-30.2 6.6-44.1h56.7c4.7 0 9.2-1.9 12.5-5.2l25.4-25.4c3-3 7.1-4.7 11.4-4.7h20.2l-35.5 35.5c-5.8 5.8-9 13.6-9 21.8 0 11.5 6.2 22 17.1 27.7 1.1.6 2.3 1.1 3.5 1.5 11 3.6 22.1 1.2 30.2-5.6l59.9 59.8c6.6 6.7 1.9 18.1-7.5 18.1z"/><path fill="#673AB6" d="M340.8 251.8l-52.8-6.6c-5.4-.7-10.8 1.2-14.7 5l-5.3 5.3-66.4-66.4 14-14c3.4-3.4 3.4-9 0-12.4-3.5-3.5-9.1-3.5-12.6 0l-24.6 24.6c-2.6 2.6-6 3.9-9.4 3.9s-6.8-1.3-9.4-3.9c-5.2-5.2-5.2-13.5 0-18.7l42.8-42.8c3.3-3.3 7.8-5.2 12.5-5.2h21.7c4.7 0 9.2 1.9 12.5 5.2l25 25c3.3 3.3 7.8 5.2 12.5 5.2h56.7c4.3 13.9 6.6 28.8 6.6 44.1.1 18.1-3.1 35.5-9.1 51.7z"/></svg>
+    <h1>Privacy Policy — disclose.io browser extension</h1>
+  </div>
+  <p class="eff">Effective 5 July 2026 · applies to the "disclose.io" Chrome extension</p>
+</header>
+<div class="wrap">
+  <h2>Single purpose</h2>
+  <p>The extension has one purpose: to show you, for the site you're currently on, whether it has a way to report security problems — a vulnerability disclosure program (VDP), safe harbor for researchers, and its disclosure-maturity level — using data from the disclose.io directory.</p>
+
+  <h2>What the extension accesses, and what it sends</h2>
+  <p><strong>It reads:</strong> the <strong>registrable domain</strong> of your active tab — e.g. <code>example.com</code> — derived from the tab's URL.</p>
+  <p><strong>It never reads or sends:</strong> the full URL, the path or query string, the page contents, your browsing history beyond the current tab's domain, your identity, or any account information. The extension has no login and no user account.</p>
+  <table>
+    <tr><th>When</th><th>Where</th><th>Method</th><th>What is sent</th></tr>
+    <tr><td>Automatically, when you switch to or navigate a tab</td><td><code>directory.disclose.io</code></td><td>GET</td><td>the registrable domain, to look up its disclosure status</td></tr>
+    <tr><td>Only when you click <strong>"Look this up"</strong></td><td><code>lookup.disclose.io/api/lookup</code></td><td>POST</td><td>the registrable domain, to run a deeper security-contact lookup</td></tr>
+  </table>
+  <p>Both requests are <strong>anonymous</strong>: they carry no cookies, no credentials, and no identifier — only the domain and a static extension User-Agent string. Both endpoints are operated by <strong>the disclose.io Project</strong>, a nonprofit vulnerability-disclosure standardization effort. The domain is <strong>not</strong> sent to any other party, advertiser, or analytics service.</p>
+
+  <h2>Data storage</h2>
+  <p>Results are cached <strong>locally on your device</strong> using Chrome's <code>storage</code> API, to avoid repeat network requests. This cache is not transmitted to disclose.io or anyone else, and is cleared when you remove the extension.</p>
+
+  <h2>Logging by the receiving services</h2>
+  <p>To operate and protect the directory and lookup services, disclose.io may log requests (including the queried domain and timestamp) per its own operational policy at <a href="https://disclose.io">disclose.io</a>. These logs are used for service reliability and abuse prevention, not for advertising or profiling, and are not sold.</p>
+
+  <h2>What we do NOT do</h2>
+  <ul>
+    <li>We do <strong>not</strong> sell or rent your data.</li>
+    <li>We do <strong>not</strong> use your data for advertising, creditworthiness, or lending.</li>
+    <li>We do <strong>not</strong> track you across sites beyond the single domain check the feature requires.</li>
+    <li>We do <strong>not</strong> collect personally identifiable information.</li>
+  </ul>
+
+  <h2>Your choices</h2>
+  <p>The automatic directory check runs only while the extension is installed; remove the extension to stop it entirely. The deeper lookup only ever runs when you explicitly click "Look this up."</p>
+
+  <h2>Contact</h2>
+  <p>Questions about this policy: <a href="mailto:security@disclose.io">security@disclose.io</a> · source and issues: <a href="https://github.com/disclose/chrome-extension-v2">github.com/disclose/chrome-extension-v2</a>.</p>
+
+  <h2>Changes</h2>
+  <p>We'll update this page and its effective date if the extension's data practices change.</p>
+</div>
+</body>
+</html>
