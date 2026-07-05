@@ -41,27 +41,30 @@ const ICON_THEMES: Record<IconState, IconTheme> = {
       '<text x="64" y="92" font-family="Helvetica, Arial, sans-serif" font-size="86" font-weight="900" text-anchor="middle">?</text>',
   },
   vdp: {
-    body: '#a78bfa',
-    glow: '#ddd6fe',
-    stroke: '#7c3aed',
+    // disclose.io brand ramp — lightest tier (has a report channel)
+    body: '#9575cd',
+    glow: '#d1c4e9',
+    stroke: '#673ab6',
     fg: '#ffffff',
     // checkmark
     glyph:
       '<path d="M40 66 L58 84 L92 46" stroke="#ffffff" stroke-width="12" stroke-linecap="round" stroke-linejoin="round" fill="none"/>',
   },
   'safe-harbor': {
-    body: '#7c3aed',
-    glow: '#a78bfa',
-    stroke: '#5b21b6',
+    // disclose.io brand ramp — mid tier, anchored on brand #673ab6
+    body: '#673ab6',
+    glow: '#9575cd',
+    stroke: '#512da8',
     fg: '#ffffff',
     // shield with check
     glyph:
       '<path d="M64 22 L96 36 V66 C96 82 80 96 64 102 C48 96 32 82 32 66 V36 Z" fill="#ffffff" opacity="0.18"/><path d="M40 66 L58 84 L92 46" stroke="#ffffff" stroke-width="12" stroke-linecap="round" stroke-linejoin="round" fill="none"/>',
   },
   level5: {
-    body: '#4c1d95',
-    glow: '#7c3aed',
-    stroke: '#3c1361',
+    // disclose.io brand ramp — deepest tier (best practice), gold accent kept
+    body: '#512da8',
+    glow: '#673ab6',
+    stroke: '#311b92',
     fg: '#fde68a',
     glyph:
       // sparkle star + "5"

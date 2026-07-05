@@ -12,12 +12,14 @@
   --border: #e5e7eb;
   --border-strong: #d1d5db;
 
-  --purple: #6c2bd9;
-  --purple-deep: #4c1d95;
-  --purple-soft: #ede9fe;
-  --purple-softer: #f5f3ff;
+  /* disclose.io brand ramp — anchored on the canonical brand color #673AB6
+   * (Material Deep Purple; matches logo.svg, wordmark, main.css, pagefind). */
+  --purple: #673ab6;
+  --purple-deep: #512da8;
+  --purple-soft: #ede7f6;
+  --purple-softer: #f5f0fb;
 
-  --celebrate: linear-gradient(135deg, #ede9fe 0%, #fce7f3 100%);
+  --celebrate: linear-gradient(135deg, #ede7f6 0%, #f3e5f5 100%);
 
   --alert: #b91c1c;
   --alert-bg: #fef2f2;
@@ -29,8 +31,8 @@
 
   --conf-high-bg: #dcfce7;
   --conf-high-fg: #047857;
-  --conf-med-bg: #ede9fe;
-  --conf-med-fg: #6c2bd9;
+  --conf-med-bg: #ede7f6;
+  --conf-med-fg: #673ab6;
   --conf-low-bg: #fef2f2;
   --conf-low-fg: #b45309;
 
@@ -48,12 +50,14 @@
     --border: #243247;
     --border-strong: #3a4a63;
 
-    --purple: #b39dfb;
-    --purple-deep: #d6cbfd;
-    --purple-soft: #2c2a5e;
-    --purple-softer: #211f45;
+    /* brand ramp, dark: light tints of #673ab6 for text/accents, deep brand
+     * surfaces for fills (Material Deep Purple 100/200 + 900). */
+    --purple: #b39ddb;
+    --purple-deep: #d1c4e9;
+    --purple-soft: #332a54;
+    --purple-softer: #272049;
 
-    --celebrate: linear-gradient(135deg, #312e81 0%, #5b2a63 100%);
+    --celebrate: linear-gradient(135deg, #311b92 0%, #4a148c 100%);
 
     --alert: #f87171;
     --alert-bg: #3a1d20;
@@ -65,8 +69,8 @@
 
     --conf-high-bg: #14361f;
     --conf-high-fg: #34d399;
-    --conf-med-bg: #2c2a5e;
-    --conf-med-fg: #b39dfb;
+    --conf-med-bg: #332a54;
+    --conf-med-fg: #b39ddb;
     --conf-low-bg: #3a1d20;
     --conf-low-fg: #fbbf24;
   }
@@ -104,17 +108,17 @@ main {
   border-bottom: 1px solid var(--border);
 }
 
+/* The real disclose.io logo (purple unlock-circle) lives inline in the header.
+ * Size-only container — the mark keeps its own brand colors in light AND dark. */
 .brand__mark {
   display: inline-flex;
-  align-items: center;
-  justify-content: center;
   width: 22px;
   height: 22px;
-  border-radius: 6px;
-  background: var(--purple);
-  color: #fff;
-  font-size: 13px;
-  font-weight: 700;
+}
+.brand__mark svg {
+  width: 100%;
+  height: 100%;
+  display: block;
 }
 
 .brand__name {
