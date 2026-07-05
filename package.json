@@ -10,7 +10,8 @@
     "test": "bun scripts/test.ts",
     "iterate": "bun scripts/build.ts && bun scripts/test.ts",
     "package": "bun scripts/build.ts && cd dist && zip -r ../disclose-extension.zip . -x '*.map' && cd ..",
-    "smoke": "SMOKE=1 bun scripts/test.ts"
+    "smoke": "SMOKE=1 bun scripts/test.ts",
+    "demo": "bun scripts/demo.ts"
   },
   "devDependencies": {
     "@playwright/test": "^1.48.0",

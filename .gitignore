@@ -1,6 +1,7 @@
 node_modules/
 dist/
 disclose-extension.zip
+demo-out/
 icons/
 test/screenshots/
 test/results.json

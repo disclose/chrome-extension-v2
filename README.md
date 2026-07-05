@@ -6,6 +6,12 @@ See, at a glance, whether the website you're visiting welcomes security research
 
 The extension polls [directory.disclose.io](https://directory.disclose.io) for the current site's eTLD+1 and turns the toolbar icon purple based on whether the site has a vulnerability disclosure policy (VDP) and whether it offers researchers safe harbor. When the site isn't in the directory, you can run a deeper lookup against [lookup.disclose.io](https://lookup.disclose.io) on demand.
 
+## Demo
+
+![disclose.io popup — all five states, live lookup, copy, and retaliation warning](docs/demo/disclose-popup-demo.gif)
+
+A ~16s walkthrough of the popup: Level 5 → safe harbor → VDP-only → not-listed, then a live `lookup.disclose.io` run (contact cards + Copy) and the retaliation warning. Higher-quality [MP4](docs/demo/disclose-popup-demo.mp4). It's a real recording of the built extension against the mocked backend — regenerate any time with `bun scripts/demo.ts` (see [`docs/demo/`](docs/demo/README.md)).
+
 ## Two audiences, one icon
 
 - **Security researchers** — find a contact channel for the vuln you just discovered, in flight, without leaving the page.
@@ -41,6 +47,7 @@ bun run build       # produces dist/
 bun run test        # mocked Playwright suite + axe-core a11y scan
 SMOKE=1 bun run test  # also hits production directory.disclose.io for a regression sanity check
 bun run package     # produces disclose-extension.zip for Web Store upload
+bun run demo        # records docs/demo/*.webm from the built extension (needs ffmpeg to re-encode)
 ```
 
 ### Loading the extension
@@ -68,9 +75,11 @@ src/
 scripts/
   build.ts            # esbuild bundle + sharp icon rendering
   test.ts             # unattended Playwright runner with mocked endpoints
+  demo.ts             # records the demo video by driving the built extension
 test/
   fixtures/           # canned directory + lookup HTML/JSON responses
 docs/screenshots/     # archive of the 5 popup states
+docs/demo/            # demo video (mp4 + gif) + regeneration notes
 ```
 
 ### Re-syncing the parser
