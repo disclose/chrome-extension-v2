@@ -1,0 +1,41 @@
+name: Bug report
+description: Something in the extension is broken or behaving unexpectedly
+labels: [bug]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for the report! If your issue is "the badge/maturity shown for a site is wrong," that's **directory data**, not extension code — corrections happen at [directory.disclose.io](https://directory.disclose.io) (see the links in the issue chooser).
+  - type: input
+    id: version
+    attributes:
+      label: Extension version
+      description: chrome://extensions → disclose.io → version
+      placeholder: "0.1.0"
+    validations:
+      required: true
+  - type: input
+    id: browser
+    attributes:
+      label: Browser + version
+      placeholder: "Chrome 138"
+    validations:
+      required: true
+  - type: input
+    id: domain
+    attributes:
+      label: Site domain (if relevant)
+      placeholder: "example.com"
+  - type: textarea
+    id: expected
+    attributes:
+      label: What you expected
+    validations:
+      required: true
+  - type: textarea
+    id: actual
+    attributes:
+      label: What happened instead
+      description: Screenshots of the popup / toolbar icon help a lot.
+    validations:
+      required: true

@@ -6,6 +6,18 @@
 
 ### Does this website take security seriously? Know at a glance.
 
+<p>
+<a href="https://github.com/disclose/chrome-extension-v2/actions/workflows/ci.yml"><img src="https://github.com/disclose/chrome-extension-v2/actions/workflows/ci.yml/badge.svg" alt="CI"></a>
+<a href="https://github.com/disclose/chrome-extension-v2/actions/workflows/codeql.yml"><img src="https://github.com/disclose/chrome-extension-v2/actions/workflows/codeql.yml/badge.svg" alt="CodeQL"></a>
+<a href="https://scorecard.dev/viewer/?uri=github.com/disclose/chrome-extension-v2"><img src="https://api.scorecard.dev/projects/github.com/disclose/chrome-extension-v2/badge" alt="OpenSSF Scorecard"></a>
+<a href="https://github.com/disclose/chrome-extension-v2/releases/latest"><img src="https://img.shields.io/github/v/release/disclose/chrome-extension-v2?color=673AB6" alt="Latest release"></a>
+<a href="LICENSE"><img src="https://img.shields.io/github/license/disclose/chrome-extension-v2?color=673AB6" alt="MIT license"></a>
+<img src="https://img.shields.io/badge/manifest-v3-673AB6" alt="Manifest V3">
+<img src="https://img.shields.io/badge/TypeScript-strict-673AB6" alt="TypeScript strict">
+<img src="https://img.shields.io/badge/runtime-bun-673AB6" alt="Bun">
+</p>
+<!-- After Chrome Web Store publish, add: img.shields.io/chrome-web-store/{v,users,rating}/<EXTENSION_ID> badges + the official "Available in the Chrome Web Store" button, linked to the listing. -->
+
 A free, open-source Chrome extension that shows you — for any site you visit — whether it has a safe, published way to report security problems. One quiet signal of how much you can trust it.
 
 <img src="docs/demo/walkthrough.gif" alt="Walkthrough: the popup across Level 5, safe harbor, VDP, and not-listed states" width="360">
@@ -66,7 +78,16 @@ The color of the toolbar icon encodes the same thing at a glance — deeper purp
 
 **Chrome Web Store:** *coming soon* — the listing is in review. ⭐ this repo to hear when it's live.
 
-**Load it now (developer mode):**
+**Install from a release (no build needed):**
+
+1. Download **`disclose-extension.zip`** from the [latest release](https://github.com/disclose/chrome-extension-v2/releases/latest) and unzip it.
+2. Open `chrome://extensions` → turn on **Developer mode** (top-right).
+3. Click **Load unpacked** and select the unzipped folder.
+4. Click the puzzle-piece 🧩 in the toolbar and **pin** disclose.io so the badge stays visible.
+
+> Release builds are unsigned and won't auto-update until the Web Store listing is live — watch [Releases](https://github.com/disclose/chrome-extension-v2/releases) for new versions.
+
+**Build it yourself (developer mode):**
 
 1. Clone the repo and build it:
    ```sh
@@ -98,6 +119,15 @@ Full policy: **[disclose-extension-privacy.pages.dev](https://disclose-extension
 
 No new infrastructure — it consumes the existing disclose.io directory and lookup services.
 
+```mermaid
+flowchart LR
+    P["Popup<br>(popup.ts)"] -- "getEvaluation / runLookup" --> W["MV3 service worker<br>(background.ts)"]
+    W -- "domain only" --> D["directory.disclose.io"]
+    W -- "on-demand<br>POST /api/lookup" --> L["lookup.disclose.io"]
+    W -- "icon state" --> I["Toolbar icon<br>(chrome.action)"]
+    W <--> C["chrome.storage.session<br>cache"]
+```
+
 ## Development
 
 ```sh
@@ -109,7 +139,8 @@ SMOKE=1 bun run test # also hits production directory.disclose.io as a sanity ch
 bun run package      # → disclose-extension.zip for Web Store upload
 ```
 
-**Project layout**
+<details>
+<summary><b>Project layout</b></summary>
 
 ```
 src/
@@ -126,6 +157,8 @@ scripts/build.ts  # esbuild + brand icon rendering (ICON_THEMES)
 store/            # Chrome Web Store package: privacy policy, listing, assets
 docs/marketing/   # README screenshots + walkthrough frames
 ```
+
+</details>
 
 The popup and icons follow the **disclose.io design system** (brand `#673AB6`, the real disclose.io mark). Design tokens live in `src/popup/popup.css` `:root` and `scripts/build.ts` `ICON_THEMES`.
 
