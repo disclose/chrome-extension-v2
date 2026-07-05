@@ -3,6 +3,27 @@
 Artifacts + steps to get the disclose.io extension live. Sourced against the
 current (July 2026) Chrome Web Store rules.
 
+## ⏸ STATUS — paused 2026-07-05 (RESUME HERE)
+
+**Done & shipped:** disclose.io brand alignment + this store package are merged
+to `main` (PR #2). Privacy policy is **LIVE** at
+https://disclose-extension-privacy.pages.dev/. `bun run package` →
+`disclose-extension.zip` builds green from `main`. Publisher account =
+**casey@disclose.io**.
+
+**Blocked on:** the manual dashboard submission. Chrome forbids extension-based
+automation on the Web Store domain (*"The extensions gallery cannot be scripted"*),
+so computer-use CANNOT drive it — the first submission is human-only.
+
+**Resume:** sign into https://chrome.google.com/webstore/devconsole/ as
+casey@disclose.io and follow "Publish steps" below — upload `disclose-extension.zip`,
+paste from `LISTING.md`, add `screenshots/*.png` + `promo-tile-440x280.png`, set
+the privacy URL, submit.
+
+**Automation for later:** once the item exists + OAuth is set up, *version updates*
+can go via the Chrome Web Store API (package → upload → publish), no dashboard.
+The first listing (metadata + screenshots) is dashboard-only regardless.
+
 ## In this folder
 - `PRIVACY.md` / `privacy.html` — the privacy policy (host the HTML at a public URL)
 - `LISTING.md` — name, description, single-purpose, permission justifications,
