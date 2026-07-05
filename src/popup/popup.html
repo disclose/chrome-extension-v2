@@ -2,7 +2,7 @@
 <html lang="en">
   <head>
     <meta charset="utf-8" />
-    <meta name="viewport" content="width=360, initial-scale=1" />
+    <meta name="viewport" content="width=376, initial-scale=1" />
     <title>disclose.io</title>
     <link rel="stylesheet" href="popup.css" />
   </head>
@@ -11,12 +11,31 @@
       <header class="brand">
         <span class="brand__mark" aria-hidden="true">⌖</span>
         <span class="brand__name">disclose.io</span>
+        <!-- NEW: state pill, populated by renderStatusPill() -->
+        <span id="status-pill" class="pill" hidden></span>
       </header>
 
       <section class="hero" id="hero" aria-labelledby="hero-headline">
-        <h1 id="hero-headline" class="hero__headline">Checking…</h1>
-        <p id="hero-detail" class="hero__detail">Looking this site up in the disclose.io directory.</p>
+        <div class="hero__row">
+          <!-- NEW: spinner shows only while data-state="unknown" (Checking…) -->
+          <span class="hero__spinner" aria-hidden="true"></span>
+          <!-- NEW: hero glyph, populated by renderHeroIcon() -->
+          <span class="hero__icon" id="hero-icon" aria-hidden="true"></span>
+          <div class="hero__text">
+            <h1 id="hero-headline" class="hero__headline">Checking…</h1>
+            <p id="hero-detail" class="hero__detail">Looking this site up in the disclose.io directory.</p>
+          </div>
+        </div>
+        <!-- NEW: maturity score row, populated by renderScore() -->
+        <div class="hero__score" id="maturity" hidden>
+          <span class="pill pill--solid" id="maturity-level"></span>
+          <span class="hero__score-label">Maturity score</span>
+          <span class="hero__score-num" id="maturity-score"></span>
+        </div>
       </section>
+
+      <!-- NEW: attribute chips, populated by renderChips() -->
+      <div class="chips" id="chips" hidden></div>
 
       <section
         id="retaliation-banner"
@@ -24,7 +43,7 @@
         role="alert"
         hidden
       >
-        <strong>Heads up — researchers have reported retaliation here.</strong>
+        <strong>⚑ Researchers have reported retaliation here</strong>
         <p id="retaliation-detail" class="banner__detail"></p>
       </section>
 
@@ -47,7 +66,7 @@
         <details>
           <summary>Disclosure details</summary>
           <dl class="details__grid" id="details-grid"></dl>
-          <a id="submit-cta" class="cta cta--primary" href="#" target="_blank" rel="noopener" hidden>
+          <a id="submit-cta" class="cta cta--primary submit-cta" href="#" target="_blank" rel="noopener" hidden>
             Submit a vulnerability →
           </a>
         </details>

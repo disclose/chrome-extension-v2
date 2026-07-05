@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<meta name="design_doc_mode" content="canvas">
+<style>
+  body { margin: 0; background: #efeaf9; }
+  .frame-shadow { box-shadow: 0 24px 48px -24px rgba(76,29,149,.45); }
+</style>
+</helmet>
+<div style="min-height:100vh;background:radial-gradient(1200px 600px at 50% -5%, #e7dffb 0%, #efeaf9 55%, #eceaf3 100%);padding:44px 48px 80px;font-family:system-ui,-apple-system,'Segoe UI',sans-serif;color:#1e1633">
+
+  <!-- page header -->
+  <div style="max-width:1320px;margin:0 auto 8px;display:flex;align-items:center;gap:12px">
+    <span style="display:inline-flex;align-items:center;justify-content:center;width:34px;height:34px;border-radius:9px;background:#6c2bd9;color:#fff;font-size:19px;font-weight:700">⌖</span>
+    <div>
+      <div style="font-size:22px;font-weight:750;letter-spacing:-.02em">disclose.io — browser extension popup</div>
+      <div style="font-size:13.5px;color:#6b5f86">Interactive prototype · three polished directions of the purple UI · live directory states, expanders &amp; lookup</div>
+    </div>
+  </div>
+
+  <!-- how-to strip -->
+  <div style="max-width:1320px;margin:0 auto 30px;display:flex;flex-wrap:wrap;gap:10px 20px;font-size:12.5px;color:#5b4f78">
+    <span style="display:inline-flex;align-items:center;gap:6px"><b style="color:#6c2bd9">Demo strip ▾</b> switch the site to see every directory state</span>
+    <span style="display:inline-flex;align-items:center;gap:6px"><b style="color:#6c2bd9">↻ Replay</b> re-plays the “Checking…” resolve</span>
+    <span style="display:inline-flex;align-items:center;gap:6px"><b style="color:#6c2bd9">Look this up</b> runs a live lookup (with retaliation alerts)</span>
+    <span style="display:inline-flex;align-items:center;gap:6px"><b style="color:#6c2bd9">☾ / ☀</b> toggles light / dark</span>
+  </div>
+
+  <!-- ============ TURN 1: three directions ============ -->
+  <section style="max-width:1320px;margin:0 auto">
+    <div style="display:flex;flex-wrap:wrap;gap:36px;align-items:flex-start;justify-content:center">
+
+      <!-- 1a Refined -->
+      <div id="1a" style="width:420px">
+        <div style="display:flex;align-items:baseline;gap:9px;margin-bottom:4px">
+          <span style="font-size:11px;font-weight:750;color:#fff;background:#6c2bd9;border-radius:6px;padding:2px 8px">1a</span>
+          <span style="font-size:16px;font-weight:700;letter-spacing:-.01em">Refined</span>
+        </div>
+        <p style="margin:0 0 16px;font-size:12.5px;color:#6b5f86;max-width:40ch">A faithful evolution of today’s popup — cleaner hierarchy, a status pill, attribute chips, and a maturity score line.</p>
+        <div class="frame-shadow" style="border-radius:16px;overflow:hidden;border:1px solid #ded5f0;background:#fff">
+          <div style="display:flex;align-items:center;gap:9px;padding:9px 12px;background:#f7f4fc;border-bottom:1px solid #ece6f6">
+            <span style="display:flex;gap:5px"><i style="width:10px;height:10px;border-radius:50%;background:#ff5f57;display:inline-block"></i><i style="width:10px;height:10px;border-radius:50%;background:#febc2e;display:inline-block"></i><i style="width:10px;height:10px;border-radius:50%;background:#28c840;display:inline-block"></i></span>
+            <div style="flex:1;height:22px;border-radius:6px;background:#fff;border:1px solid #e5ddf4;display:flex;align-items:center;padding:0 9px;font-size:11px;color:#8a7ca8;gap:6px"><span style="font-size:9px">🔒</span>level5-example.test</div>
+            <span style="display:inline-flex;align-items:center;justify-content:center;width:24px;height:24px;border-radius:6px;background:#ede9fe;color:#6c2bd9;font-size:13px;box-shadow:0 0 0 2px #d6c9f7">⌖</span>
+          </div>
+          <div style="background:#f3f0fb;padding:14px 20px 22px;display:flex;justify-content:flex-end">
+            <div style="position:relative">
+              <span style="position:absolute;top:-7px;right:11px;width:14px;height:14px;background:#fff;border-left:1px solid #e5e7eb;border-top:1px solid #e5e7eb;transform:rotate(45deg)"></span>
+              <dc-import name="DisclosePopup" variant="refined" theme="light" site="level5-example.test" hint-size="376px,700px"></dc-import>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 1b Signal -->
+      <div id="1b" style="width:420px">
+        <div style="display:flex;align-items:baseline;gap:9px;margin-bottom:4px">
+          <span style="font-size:11px;font-weight:750;color:#fff;background:#6c2bd9;border-radius:6px;padding:2px 8px">1b</span>
+          <span style="font-size:16px;font-weight:700;letter-spacing:-.01em">Signal</span>
+        </div>
+        <p style="margin:0 0 16px;font-size:12.5px;color:#6b5f86;max-width:40ch">Score-forward. A maturity gauge and a five-level meter make “how good is this program” legible at a glance.</p>
+        <div class="frame-shadow" style="border-radius:16px;overflow:hidden;border:1px solid #ded5f0;background:#fff">
+          <div style="display:flex;align-items:center;gap:9px;padding:9px 12px;background:#f7f4fc;border-bottom:1px solid #ece6f6">
+            <span style="display:flex;gap:5px"><i style="width:10px;height:10px;border-radius:50%;background:#ff5f57;display:inline-block"></i><i style="width:10px;height:10px;border-radius:50%;background:#febc2e;display:inline-block"></i><i style="width:10px;height:10px;border-radius:50%;background:#28c840;display:inline-block"></i></span>
+            <div style="flex:1;height:22px;border-radius:6px;background:#fff;border:1px solid #e5ddf4;display:flex;align-items:center;padding:0 9px;font-size:11px;color:#8a7ca8;gap:6px"><span style="font-size:9px">🔒</span>safeharbor-example.test</div>
+            <span style="display:inline-flex;align-items:center;justify-content:center;width:24px;height:24px;border-radius:6px;background:#ede9fe;color:#6c2bd9;font-size:13px;box-shadow:0 0 0 2px #d6c9f7">⌖</span>
+          </div>
+          <div style="background:#f3f0fb;padding:14px 20px 22px;display:flex;justify-content:flex-end">
+            <div style="position:relative">
+              <span style="position:absolute;top:-7px;right:11px;width:14px;height:14px;background:#fff;border-left:1px solid #e5e7eb;border-top:1px solid #e5e7eb;transform:rotate(45deg)"></span>
+              <dc-import name="DisclosePopup" variant="signal" theme="light" site="safeharbor-example.test" hint-size="376px,700px"></dc-import>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 1c Compact -->
+      <div id="1c" style="width:420px">
+        <div style="display:flex;align-items:baseline;gap:9px;margin-bottom:4px">
+          <span style="font-size:11px;font-weight:750;color:#fff;background:#6c2bd9;border-radius:6px;padding:2px 8px">1c</span>
+          <span style="font-size:16px;font-weight:700;letter-spacing:-.01em">Compact</span>
+        </div>
+        <p style="margin:0 0 16px;font-size:12.5px;color:#6b5f86;max-width:40ch">Researcher-first &amp; dense. A one-line status strip and an immediate, copy-ready “report to” contact up top.</p>
+        <div class="frame-shadow" style="border-radius:16px;overflow:hidden;border:1px solid #ded5f0;background:#fff">
+          <div style="display:flex;align-items:center;gap:9px;padding:9px 12px;background:#f7f4fc;border-bottom:1px solid #ece6f6">
+            <span style="display:flex;gap:5px"><i style="width:10px;height:10px;border-radius:50%;background:#ff5f57;display:inline-block"></i><i style="width:10px;height:10px;border-radius:50%;background:#febc2e;display:inline-block"></i><i style="width:10px;height:10px;border-radius:50%;background:#28c840;display:inline-block"></i></span>
+            <div style="flex:1;height:22px;border-radius:6px;background:#fff;border:1px solid #e5ddf4;display:flex;align-items:center;padding:0 9px;font-size:11px;color:#8a7ca8;gap:6px"><span style="font-size:9px">🔒</span>unknown-example.test</div>
+            <span style="display:inline-flex;align-items:center;justify-content:center;width:24px;height:24px;border-radius:6px;background:#fdeaea;color:#b91c1c;font-size:13px;box-shadow:0 0 0 2px #f3c9c9">⌖</span>
+          </div>
+          <div style="background:#f3f0fb;padding:14px 20px 22px;display:flex;justify-content:flex-end">
+            <div style="position:relative">
+              <span style="position:absolute;top:-7px;right:11px;width:14px;height:14px;background:#fff;border-left:1px solid #e5e7eb;border-top:1px solid #e5e7eb;transform:rotate(45deg)"></span>
+              <dc-import name="DisclosePopup" variant="compact" theme="light" site="unknown-example.test" hint-size="376px,700px"></dc-import>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- dark row -->
+    <div style="max-width:1320px;margin:56px auto 0">
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:20px">
+        <span style="font-size:13px;font-weight:700;letter-spacing:.02em;color:#3a2f57">Dark mode</span>
+        <span style="flex:1;height:1px;background:#d8cff0"></span>
+        <span style="font-size:12px;color:#8a7ca8">same three directions · each popup also has a live ☾/☀ toggle</span>
+      </div>
+      <div style="display:flex;flex-wrap:wrap;gap:36px;align-items:flex-start;justify-content:center">
+        <div style="width:376px"><dc-import name="DisclosePopup" variant="refined" theme="dark" site="level5-example.test" hint-size="376px,700px"></dc-import></div>
+        <div style="width:376px"><dc-import name="DisclosePopup" variant="signal" theme="dark" site="vdp-only-example.test" hint-size="376px,700px"></dc-import></div>
+        <div style="width:376px"><dc-import name="DisclosePopup" variant="compact" theme="dark" site="acme-corp.test" hint-size="376px,700px"></dc-import></div>
+      </div>
+    </div>
+  </section>
+</div>
+</x-dc>
+</body>
+</html>
