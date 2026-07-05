@@ -137,4 +137,4 @@ disclose.io is a vendor-agnostic, nonprofit project driving the adoption of vuln
 
 ## License
 
-Part of the open-source disclose.io Project. A `LICENSE` file is being finalized and will be added shortly.
+[MIT](LICENSE) © The disclose.io Project. Free to use, modify, and distribute — in the spirit of the open, vendor-agnostic disclose.io mission.

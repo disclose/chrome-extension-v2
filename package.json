@@ -2,6 +2,7 @@
   "name": "disclose-chrome-extension",
   "version": "0.1.0",
   "private": true,
+  "license": "MIT",
   "description": "Browser extension that surfaces vulnerability-disclosure posture for the current site, polling directory.disclose.io live and falling back to lookup.disclose.io on demand.",
   "type": "module",
   "scripts": {
