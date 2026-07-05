@@ -1,102 +1,140 @@
-# disclose.io Chrome Extension
+<div align="center">
 
-> Repo: `disclose/chrome-extension-v2` (private). The previous `disclose/chrome-extension` repo is archived; this is the active codebase.
+<img src="docs/marketing/marquee.png" alt="disclose.io — know instantly if a site welcomes security researchers" width="820">
 
-See, at a glance, whether the website you're visiting welcomes security researchers — and where to report a vulnerability if you find one.
+# disclose.io — the browser extension
 
-The extension polls [directory.disclose.io](https://directory.disclose.io) for the current site's eTLD+1 and turns the toolbar icon purple based on whether the site has a vulnerability disclosure policy (VDP) and whether it offers researchers safe harbor. When the site isn't in the directory, you can run a deeper lookup against [lookup.disclose.io](https://lookup.disclose.io) on demand.
+### Does this website take security seriously? Know at a glance.
 
-## Demo
+A free, open-source Chrome extension that shows you — for any site you visit — whether it has a safe, published way to report security problems. One quiet signal of how much you can trust it.
 
-![disclose.io popup — all five states, live lookup, copy, and retaliation warning](docs/demo/disclose-popup-demo.gif)
+<img src="docs/demo/walkthrough.gif" alt="Walkthrough: the popup across Level 5, safe harbor, VDP, and not-listed states" width="360">
 
-A ~16s walkthrough of the popup: Level 5 → safe harbor → VDP-only → not-listed, then a live `lookup.disclose.io` run (contact cards + Copy) and the retaliation warning. Higher-quality [MP4](docs/demo/disclose-popup-demo.mp4). It's a real recording of the built extension against the mocked backend — regenerate any time with `bun scripts/demo.ts` (see [`docs/demo/`](docs/demo/README.md)).
+*Part of [the disclose.io Project](https://disclose.io) · [directory.disclose.io](https://directory.disclose.io) · [lookup.disclose.io](https://lookup.disclose.io)*
 
-## Two audiences, one icon
+</div>
 
-- **Security researchers** — find a contact channel for the vuln you just discovered, in flight, without leaving the page.
-- **Everyone else** — recognize companies that take their users' security seriously, and clearly distinguish those that don't publish a way to report security problems at all.
+---
 
-## Icon states
+## What it does
 
-| Icon | When | Verdict |
-| --- | --- | --- |
-| gray dot | Page is being evaluated | "Checking…" |
-| gray "?" | Site is not in the disclose.io directory | "No published way to report security problems" |
-| light purple | Site has a security-report channel | "Has a way to report security issues" |
-| purple | Site has full safe harbor | "Welcomes security reports — researcher-safe" |
-| deep purple ✨ | Maturity Level 5 / score ≥ 80 | "Best-practice security disclosure" |
+The moment you land on a website, the disclose.io icon in your toolbar tells you whether that site **welcomes security researchers** — meaning it has published a clear way to report security problems, and (ideally) promises not to punish the people who do.
+
+Open the popup and you get the details in plain language: does it have **safe harbor**? A **bug bounty**? A published **policy** and **security.txt**? And an overall **disclosure-maturity** score, straight from the disclose.io directory. One click runs a deeper live lookup for a security contact.
+
+No account. No tracking. It only ever sends the site's **domain** — never your URL, your page, or anything about you.
+
+## Why this matters — even if you never report a bug
+
+Most people will never file a vulnerability report. So why should you care whether a website "welcomes security researchers"?
+
+Because it's one of the clearest, most honest signals you can get about whether a company **actually has its act together on security** — and, by extension, how much you can trust it with your data, your money, and your time.
+
+Think about what it takes for a company to publish a real vulnerability disclosure program:
+
+- **Someone owns security** and is reachable — not a black hole.
+- There's a **process** to receive a problem, triage it, and actually *fix* it.
+- Legal has signed off on **safe harbor** — a public promise not to sue the good-faith hacker who reports a flaw instead of exploiting it.
+- And it's **maintained**, not posted once and forgotten.
+
+A company only gets there if the machinery behind it is mature. That's the insight: **disclosure maturity is a visible proxy for security maturity — and security maturity is a proxy for trustworthiness.** It's the security equivalent of a restaurant with an open kitchen. The willingness to be looked at is itself the signal.
+
+The opposite is a signal too. A site with **no way to report a problem** — or one that threatens the people who try to warn it — is telling you something about how it will treat *your* security when it matters.
+
+This extension takes a judgment that used to require an expert and turns it into a glance, on every site you visit.
+
+## What the badge tells you
+
+<table>
+<tr>
+<td width="25%"><img src="docs/marketing/state-level5.png" alt="Level 5 — best-practice" width="200"></td>
+<td width="25%"><img src="docs/marketing/state-safe-harbor.png" alt="Safe harbor" width="200"></td>
+<td width="25%"><img src="docs/marketing/state-vdp.png" alt="Has a channel" width="200"></td>
+<td width="25%"><img src="docs/marketing/state-none.png" alt="Not listed" width="200"></td>
+</tr>
+<tr>
+<td valign="top"><b>✨ Best practice (Level&nbsp;5)</b><br>A clear, mature, researcher-safe disclosure program. The gold standard.</td>
+<td valign="top"><b>✓ Welcomes researchers</b><br>Full <b>safe harbor</b> — it accepts security research and protects good-faith reporters.</td>
+<td valign="top"><b>✓ Has a channel</b><br>There's a way to report a security issue, but without full safe-harbor protection.</td>
+<td valign="top"><b>⚠ Not listed</b><br>No published way to report security problems. Researchers may have nowhere to turn.</td>
+</tr>
+</table>
+
+The color of the toolbar icon encodes the same thing at a glance — deeper purple means higher maturity — so you get the signal without even opening the popup.
+
+## Install
+
+**Chrome Web Store:** *coming soon* — the listing is in review. ⭐ this repo to hear when it's live.
+
+**Load it now (developer mode):**
+
+1. Clone the repo and build it:
+   ```sh
+   bun install
+   bun run build      # produces dist/
+   ```
+2. Open `chrome://extensions` → turn on **Developer mode** (top-right).
+3. Click **Load unpacked** and select the **`dist/`** folder.
+4. Click the puzzle-piece 🧩 in the toolbar and **pin** disclose.io so the badge stays visible.
+
+After any change: `bun run build`, then hit **reload ↻** on the extension's card.
+
+## Your privacy comes first
+
+- It only ever sends the current site's **domain** (e.g. `example.com`) — never your URL, query string, or page contents.
+- Requests are **anonymous**: no cookies, no account, no identifier.
+- The directory check runs automatically; the deeper `lookup.disclose.io` query only runs when **you** click "Look this up."
+- Results are cached locally in `chrome.storage.session` and cleared when the browser restarts. No browsing-history storage.
+- `host_permissions` are limited to `directory.disclose.io` and `lookup.disclose.io` — the extension can't touch any other site.
+
+Full policy: **[disclose-extension-privacy.pages.dev](https://disclose-extension-privacy.pages.dev/)**.
 
 ## How it works
 
-- On every top-frame navigation, the background service worker takes the active tab's eTLD+1 and queries `directory.disclose.io/?q=<name>` for matching programs (mirroring the proven query strategy used in `lookup-disclose-io/src/steps/diodb.ts`).
-- Matched programs are filtered with the same hosting-domain filter and entity-match logic that the `lookup.disclose.io` server uses, so a Bugcrowd-hosted policy doesn't make `bugcrowd.com` match every program.
-- Results are cached in `chrome.storage.session` for 1 hour per domain.
-- When you click the icon and the site has no match, the popup runs `POST https://lookup.disclose.io/api/lookup` for a richer answer (security.txt, /security page probe, retaliation history overlay).
+- On each top-frame navigation, the MV3 service worker takes the active tab's eTLD+1 and queries `directory.disclose.io/?q=<name>` for matching programs.
+- Matches are filtered with the same hosting-domain + entity-match logic the `lookup.disclose.io` server uses, so a platform-hosted policy doesn't make every program match.
+- The maturity/verdict and icon color are derived from the matched program (`src/lib/maturity.ts`).
+- When you run a live lookup, the popup calls `POST https://lookup.disclose.io/api/lookup` for a richer answer (security.txt, security-page probe, retaliation-history overlay).
 
-The extension never sends your URLs or page contents anywhere. It only sends the current site's eTLD+1.
-
-No new infrastructure: this extension consumes the existing `directory.disclose.io` and `lookup.disclose.io` endpoints.
+No new infrastructure — it consumes the existing disclose.io directory and lookup services.
 
 ## Development
 
 ```sh
 bun install
-bunx playwright install chromium  # one-time: stages the Playwright Chromium build the test runner loads the extension into
-bun run build       # produces dist/
-bun run test        # mocked Playwright suite + axe-core a11y scan
-SMOKE=1 bun run test  # also hits production directory.disclose.io for a regression sanity check
-bun run package     # produces disclose-extension.zip for Web Store upload
-bun run demo        # records docs/demo/*.webm from the built extension (needs ffmpeg to re-encode)
+bunx playwright install chromium   # one-time: Chromium the test runner loads the extension into
+bun run build        # esbuild bundle + sharp icon rendering → dist/
+bun run test         # mocked Playwright suite + axe-core a11y scan
+SMOKE=1 bun run test # also hits production directory.disclose.io as a sanity check
+bun run package      # → disclose-extension.zip for Web Store upload
 ```
 
-### Loading the extension
-
-1. `bun run build`
-2. Open `chrome://extensions` → enable **Developer mode**
-3. Click **Load unpacked** and pick `dist/`
-4. Click the puzzle-piece (🧩) in the Chrome toolbar → pin **disclose.io** so the icon stays visible.
-
-After any code change, run `bun run build` and click the **reload ↻** button on the extension's card in `chrome://extensions`.
-
-### Project layout
+**Project layout**
 
 ```
 src/
-  background.ts       # MV3 service worker, tab listeners, debounce, dedupe
-  popup/              # popup HTML, TypeScript, CSS
+  background.ts   # MV3 service worker: tab listeners, debounce, dedupe
+  popup/          # popup HTML, TypeScript, brand CSS (#673AB6 design tokens)
   lib/
-    directory.ts      # live directory.disclose.io poll (HTML → ProgramSnapshot)
-    match.ts          # eTLD+1, hosting-domain filter, entity matching
-    maturity.ts       # icon-state derivation + verdict copy
-    lookup.ts         # POST lookup.disclose.io/api/lookup
-    icon.ts           # chrome.action setIcon/setTitle
-    cache.ts          # chrome.storage.session helpers, in-flight dedupe
-scripts/
-  build.ts            # esbuild bundle + sharp icon rendering
-  test.ts             # unattended Playwright runner with mocked endpoints
-  demo.ts             # records the demo video by driving the built extension
-test/
-  fixtures/           # canned directory + lookup HTML/JSON responses
-docs/screenshots/     # archive of the 5 popup states
-docs/demo/            # demo video (mp4 + gif) + regeneration notes
+    directory.ts  # live directory.disclose.io poll (HTML → ProgramSnapshot)
+    match.ts      # eTLD+1, hosting-domain filter, entity matching
+    maturity.ts   # icon-state derivation + verdict copy
+    lookup.ts     # POST lookup.disclose.io/api/lookup
+    icon.ts       # chrome.action setIcon/setTitle
+    cache.ts      # chrome.storage.session + in-flight dedupe
+scripts/build.ts  # esbuild + brand icon rendering (ICON_THEMES)
+store/            # Chrome Web Store package: privacy policy, listing, assets
+docs/marketing/   # README screenshots + walkthrough frames
 ```
 
-### Re-syncing the parser
+The popup and icons follow the **disclose.io design system** (brand `#673AB6`, the real disclose.io mark). Design tokens live in `src/popup/popup.css` `:root` and `scripts/build.ts` `ICON_THEMES`.
 
-The HTML structure of `directory.disclose.io` evolves. When a parse drifts:
+## Part of disclose.io
 
-1. Compare `src/lib/directory.ts` against `lookup-disclose-io/src/steps/diodb.ts` (the canonical implementation).
-2. Update the regexes in `parseSearchRows`, `extractDetailField`, `extractDetailHref`, `extractBonusFlag`.
-3. Run `SMOKE=1 bun run test` — the live smoke check exercises real production HTML against well-known programs (Google, Cloudflare, Shopify) and a known-absent domain.
+disclose.io is a vendor-agnostic, nonprofit project driving the adoption of vulnerability-disclosure best practice — **bilateral safe harbor**, plain-language terms, and a recognizable mark of good faith between hackers and the organizations they help.
 
-## Privacy
-
-- Only the current tab's eTLD+1 is sent — never the URL, query string, or page contents.
-- The directory query happens automatically; the lookup query (`lookup.disclose.io`) only happens when you click the action button.
-- All caches are scoped to `chrome.storage.session` and are cleared when the browser restarts. There is no persistent storage of your browsing history or per-site lookup logs.
-- The extension declares `host_permissions` only for `directory.disclose.io` and `lookup.disclose.io` — it can't read or fetch from any other origin.
+[disclose.io](https://disclose.io) · [The Terms (dioterms)](https://github.com/disclose/dioterms) · [The List (directory)](https://directory.disclose.io) · [The Seal (dioseal)](https://github.com/disclose/dioseal) · [lookup.disclose.io](https://lookup.disclose.io)
 
 ## License
 
-Open-source under the disclose.io umbrella. See LICENSE (TBD).
+Part of the open-source disclose.io Project. A `LICENSE` file is being finalized and will be added shortly.
