@@ -18,9 +18,11 @@ current (July 2026) Chrome Web Store rules.
    ideally a **Group Publisher** so ownership isn't tied to one person.
    Decision needed: which Google account?
 3. **Developer registration** — one-time **$5** fee, covers up to 20 extensions.
-4. **Host the privacy policy** — deploy `privacy.html` to a public URL
-   (e.g. `disclose.io/extension-privacy` or a Pages URL); put that URL in the
-   dashboard AND in `LISTING.md`.
+4. ✅ **Privacy policy hosted** — LIVE at
+   **https://disclose-extension-privacy.pages.dev/** (Cloudflare Pages project
+   `disclose-extension-privacy`, deployed from `privacy.html`). Already in
+   `LISTING.md`. Optional: move to a `disclose.io/extension-privacy` path and
+   swap the URL before submitting.
 
 ## Publish steps
 1. `bun run package` → `disclose-extension.zip`.

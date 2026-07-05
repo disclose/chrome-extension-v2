@@ -67,11 +67,12 @@ Declare truthfully — the 2026 rules (enforced Aug 1 2026) require this:
 - **Not sold to third parties:** ✅ affirm.
 - **Not used or transferred for purposes unrelated to the single purpose:** ✅ affirm.
 - **Not used for creditworthiness / lending:** ✅ affirm.
-- **Privacy policy URL:** <HOSTED PRIVACY URL — see store/privacy.html, host it
-  e.g. at https://disclose.io/extension-privacy or a Pages URL>
+- **Privacy policy URL:** **https://disclose-extension-privacy.pages.dev/** (LIVE
+  — deployed from `store/privacy.html`). Optional: move to a disclose.io path
+  (e.g. `disclose.io/extension-privacy`) before submission and swap this URL.
 
 ## Assets checklist
 - [x] Store icon 128×128 — `dist/icons/level5-128.png` (or a neutral brand mark)
 - [x] Screenshots 1280×800 — `store/screenshots/*.png`
 - [x] Small promo tile 440×280 — `store/promo-tile-440x280.png`
-- [ ] Privacy policy hosted at a public URL (deploy `store/privacy.html`)
+- [x] Privacy policy hosted — https://disclose-extension-privacy.pages.dev/
