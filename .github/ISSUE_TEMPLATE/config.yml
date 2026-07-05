@@ -1,0 +1,11 @@
+blank_issues_enabled: true
+contact_links:
+  - name: 📊 A site's badge/data looks wrong
+    url: https://directory.disclose.io
+    about: Badge and maturity data comes from the disclose.io directory — corrections happen there, not in this repo.
+  - name: 🔒 Report a security vulnerability
+    url: https://github.com/disclose/chrome-extension-v2/security/advisories/new
+    about: Please use private vulnerability reporting — never a public issue.
+  - name: 🌐 About disclose.io
+    url: https://disclose.io
+    about: The project this extension belongs to.

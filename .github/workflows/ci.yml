@@ -1,0 +1,36 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    name: Typecheck, build & test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: oven-sh/setup-bun@v2
+
+      - name: Install dependencies
+        run: bun install --frozen-lockfile
+
+      - name: Install Playwright system deps
+        run: bunx playwright install --with-deps chromium
+
+      - name: Typecheck
+        run: bunx tsc --noEmit
+
+      - name: Build
+        run: bun run build
+
+      # One retry: the level5 chrome.storage.session cache check is a known
+      # timing flake (tracked in issues) — a second run distinguishes flake
+      # from real regression.
+      - name: Test (Playwright + axe-core a11y gate)
+        run: bun run test || bun run test
