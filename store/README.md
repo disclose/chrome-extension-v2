@@ -14,10 +14,12 @@ current (July 2026) Chrome Web Store rules.
 
 ## Prerequisites (the human parts)
 1. **Merge PR #1** and build from `main` (finalized brand build).
-2. **Owning account** — publish under a **disclose.io-owned Google account**,
-   ideally a **Group Publisher** so ownership isn't tied to one person.
-   Decision needed: which Google account?
-3. **Developer registration** — one-time **$5** fee, covers up to 20 extensions.
+2. ✅ **Owning account** — **casey@disclose.io** (dev account created 2026-07-05).
+   Later option for org continuity: convert/transfer to a disclose.io **Group
+   Publisher** so ownership isn't tied to one person (can be done after the
+   item's first publish).
+3. **Developer registration** — one-time **$5** fee, covers up to 20 extensions
+   (pay once on `casey@disclose.io` if not already done).
 4. ✅ **Privacy policy hosted** — LIVE at
    **https://disclose-extension-privacy.pages.dev/** (Cloudflare Pages project
    `disclose-extension-privacy`, deployed from `privacy.html`). Already in
