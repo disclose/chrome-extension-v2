@@ -85,6 +85,8 @@ The color of the toolbar icon encodes the same thing at a glance — deeper purp
 3. Click **Load unpacked** and select the unzipped folder.
 4. Click the puzzle-piece 🧩 in the toolbar and **pin** disclose.io so the badge stays visible.
 
+> Release builds are unsigned and won't auto-update until the Web Store listing is live — watch [Releases](https://github.com/disclose/chrome-extension-v2/releases) for new versions.
+
 **Build it yourself (developer mode):**
 
 1. Clone the repo and build it:

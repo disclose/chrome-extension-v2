@@ -19,7 +19,11 @@ The hosted disclose.io services the extension talks to are separate systems; rep
 
 ## Safe harbor
 
-We support safe harbor for good-faith security research, consistent with the [disclose.io Core Terms](https://github.com/disclose/dioterms): if you make a good-faith effort to avoid privacy violations, data destruction, and interruption of service while researching, we will not pursue or support legal action against you for that research.
+We support safe harbor for good-faith security research, in the spirit of the [disclose.io Core Terms](https://github.com/disclose/dioterms) — the canonical safe-harbor language this project maintains:
+
+- This policy authorizes good-faith research on **this repository's code and your own local installation of the extension**. It does **not** authorize testing the hosted disclose.io services (directory.disclose.io, lookup.disclose.io) or any third-party site — those have their own policies.
+- If you make a good-faith effort to avoid privacy violations, data destruction, and interruption of service, we will consider your research authorized under this policy and will not pursue or support legal action against you for it.
+- We speak only for this project; we cannot bind third parties.
 
 ## What to expect
 
