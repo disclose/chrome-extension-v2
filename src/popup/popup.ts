@@ -8,7 +8,7 @@ import type {
   ProgramSnapshot,
   TabEvaluation,
 } from '../types';
-import { verdictFor, safeHarborLabel } from '../lib/maturity';
+import { verdictFor, safeHarborLabel, maturityTier } from '../lib/maturity';
 
 const $ = (id: string): HTMLElement => {
   const el = document.getElementById(id);
@@ -93,7 +93,10 @@ function renderScore(program: ProgramSnapshot | undefined): void {
     show(row, false);
     return;
   }
-  setText($('maturity-level'), program.maturityLevel ?? 'Rated');
+  const levelPill = $('maturity-level');
+  setText(levelPill, program.maturityLevel ?? 'Rated');
+  // Colour the tier the way directory.disclose.io does (see popup.css ramp).
+  levelPill.className = `pill pill--maturity pill--maturity-${maturityTier(program)}`;
   setText($('maturity-score'), program.maturityScore.toFixed(0));
   show(row, true);
 }

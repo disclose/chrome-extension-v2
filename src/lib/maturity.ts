@@ -33,6 +33,28 @@ export function iconStateFor(program: ProgramSnapshot | undefined): IconState {
   return 'none';
 }
 
+/**
+ * Map a program's maturity onto directory.disclose.io's own visual ramp.
+ * The directory encodes maturity as escalating purple saturation
+ * (Basic/security.txt = lightest → Full = mid → Full+CVD = solid brand). We
+ * mirror that with three intensities so the popup badge reads the same as a
+ * directory row. Label-first (the directory's tier vocabulary), score-fallback.
+ */
+export function maturityTier(program: ProgramSnapshot | undefined): 'low' | 'mid' | 'high' {
+  if (!program) return 'low';
+  const level = (program.maturityLevel ?? '').toLowerCase();
+  // Top rung: directory's Full+CVD, plus the extension's own "Level 5"/"Level 4".
+  if (/full\s*\+|cvd|level\s*[45]\b|\bl[45]\b/.test(level)) return 'high';
+  // Middle: Full (authorises testing) and Partial (won't-pursue-legal), Advanced.
+  if (/\bfull\b|partial|advanced|intermediate|level\s*3\b|\bl3\b/.test(level)) return 'mid';
+  // Base: Basic (public policy + channel), security.txt (intake exists), low levels.
+  if (/basic|security\.?txt|level\s*[0-2]\b|\bl[0-2]\b|none/.test(level)) return 'low';
+  // Unrecognised label → lean on the numeric score.
+  const s = program.maturityScore;
+  if (typeof s === 'number') return s >= 80 ? 'high' : s >= 50 ? 'mid' : 'low';
+  return 'low';
+}
+
 export function verdictFor(state: IconState, program?: ProgramSnapshot): {
   headline: string;
   detail: string;
@@ -41,7 +63,7 @@ export function verdictFor(state: IconState, program?: ProgramSnapshot): {
   switch (state) {
     case 'level5':
       return {
-        headline: '✨ Best-practice security disclosure',
+        headline: 'Best-practice security disclosure',
         detail:
           program
             ? `${program.programName} is recognized at Maturity Level 5 — a clear, researcher-safe way to report security issues.`
@@ -50,7 +72,7 @@ export function verdictFor(state: IconState, program?: ProgramSnapshot): {
       };
     case 'safe-harbor':
       return {
-        headline: '✓ Welcomes security reports — researcher-safe',
+        headline: 'Welcomes security reports — researcher-safe',
         detail:
           program
             ? `${program.programName} accepts security research and protects researchers acting in good faith.`
@@ -59,7 +81,7 @@ export function verdictFor(state: IconState, program?: ProgramSnapshot): {
       };
     case 'vdp':
       return {
-        headline: '✓ Has a way to report security issues',
+        headline: 'Has a way to report security issues',
         detail:
           program
             ? `${program.programName} publishes a security contact, but does not offer full safe-harbor protections for researchers.`
@@ -68,7 +90,7 @@ export function verdictFor(state: IconState, program?: ProgramSnapshot): {
       };
     case 'none':
       return {
-        headline: '⚠ No published way to report security problems',
+        headline: 'No published way to report security problems',
         detail:
           'This site is not in the disclose.io directory. Researchers may have nowhere clear to send security findings.',
         tone: 'concern',

@@ -36,6 +36,17 @@
   --conf-low-bg: #fef2f2;
   --conf-low-fg: #b45309;
 
+  /* Maturity ramp — captured from live directory.disclose.io computed styles so
+   * the popup badge deepens in purple exactly like a directory table row:
+   * Basic #ede9fe/#6d28d9 · Full #d4c4fb/#4c1d95 · Full+CVD #673ab6/#fff.
+   * All three pairings clear WCAG AA (5.9:1 / 8.6:1 / 7.7:1). */
+  --maturity-low-bg: #ede9fe;
+  --maturity-low-fg: #6d28d9;
+  --maturity-mid-bg: #d4c4fb;
+  --maturity-mid-fg: #4c1d95;
+  --maturity-high-bg: #673ab6;
+  --maturity-high-fg: #ffffff;
+
   --radius: 12px;
   --radius-sm: 8px;
 }
@@ -73,6 +84,15 @@
     --conf-med-fg: #b39ddb;
     --conf-low-bg: #3a1d20;
     --conf-low-fg: #fbbf24;
+
+    /* Dark: same escalation, inverted — deeper surface + brighter purple text
+     * as the tier rises; top rung keeps the solid brand chip. All ≥6.5:1. */
+    --maturity-low-bg: #2a2148;
+    --maturity-low-fg: #b39ddb;
+    --maturity-mid-bg: #3b2d6b;
+    --maturity-mid-fg: #d1c4e9;
+    --maturity-high-bg: #673ab6;
+    --maturity-high-fg: #ffffff;
   }
 }
 
@@ -144,6 +164,18 @@ main {
  * axe 0 serious/critical; --fg-faint failed color-contrast in the `none` state. */
 .pill--neutral { background: var(--neutral-hero); color: var(--fg-muted); }
 
+/* Maturity badge: mirrors the directory.disclose.io tier badge exactly —
+ * 4px rounded-rect (not a round pill) with an escalating-purple tier ramp. */
+.pill--maturity {
+  border-radius: 4px;
+  padding: 2px 8px;
+  font-size: 12px;
+  font-weight: 600;
+}
+.pill--maturity-low  { background: var(--maturity-low-bg);  color: var(--maturity-low-fg); }
+.pill--maturity-mid  { background: var(--maturity-mid-bg);  color: var(--maturity-mid-fg); }
+.pill--maturity-high { background: var(--maturity-high-bg); color: var(--maturity-high-fg); }
+
 #status-pill { margin-left: 2px; }
 #status-pill[hidden] { display: none; }
 
@@ -179,7 +211,9 @@ main {
   font-weight: 700;
   color: var(--purple);
 }
-[data-state="level5"] .hero__icon { color: var(--warn); }
+/* level5 is the BEST state — use deep brand purple (the directory's own top-tier
+ * colour), not --warn amber, which now belongs only to the `none` warning. */
+[data-state="level5"] .hero__icon { color: var(--purple-deep); }
 [data-state="none"]   .hero__icon { color: var(--warn); }
 [data-state="unknown"] .hero__icon { display: none; }
 
