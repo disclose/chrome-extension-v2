@@ -50,7 +50,7 @@ async function getEvaluation(tabId: number): Promise<TabEvaluation | null> {
 
 // ───────────────────────────────────────────────────────────────────────────
 // NEW (Refined design): presentation helpers. These read fields that already
-// exist on IconState / ProgramSnapshot — no new data is required from the
+// exist on IconState / ProgramSnapshot, no new data is required from the
 // background worker. The hero background per state is driven entirely by CSS
 // via [data-state="…"] selectors in popup.css.
 // ───────────────────────────────────────────────────────────────────────────
@@ -302,7 +302,7 @@ async function runLiveLookup(domain: string): Promise<void> {
     setText(
       $('lookup-status'),
       elapsed > 5000
-        ? `Done — first lookup is slow because the server cold-started. Re-running it should be much faster.`
+        ? `Done. First lookup is slow because the server cold-started. Re-running it should be much faster.`
         : `Done in ${(elapsed / 1000).toFixed(1)}s`,
     );
   } catch (err) {

@@ -1,7 +1,7 @@
-/* disclose.io extension popup — "Refined" direction.
+/* disclose.io extension popup: "Refined" direction.
  * Drop-in replacement for src/popup/popup.css.
  * Pure CSS-variable theming; dark mode follows the OS via prefers-color-scheme.
- * No inline styles, no runtime theme toggle — the design tokens live here. */
+ * No inline styles, no runtime theme toggle, the design tokens live here. */
 
 :root {
   --bg: #ffffff;
@@ -12,7 +12,7 @@
   --border: #e5e7eb;
   --border-strong: #d1d5db;
 
-  /* disclose.io brand ramp — anchored on the canonical brand color #673AB6
+  /* disclose.io brand ramp, anchored on the canonical brand color #673AB6
    * (Material Deep Purple; matches logo.svg, wordmark, main.css, pagefind). */
   --purple: #673ab6;
   --purple-deep: #512da8;
@@ -109,7 +109,7 @@ main {
 }
 
 /* The real disclose.io logo (purple unlock-circle) lives inline in the header.
- * Size-only container — the mark keeps its own brand colors in light AND dark. */
+ * Size-only container, the mark keeps its own brand colors in light AND dark. */
 .brand__mark {
   display: inline-flex;
   width: 22px;
@@ -139,7 +139,7 @@ main {
 }
 .pill--solid { background: var(--purple); color: #fff; }
 /* a11y: --fg-muted (not --fg-faint) so the "Not listed" pill clears WCAG AA on
- * --neutral-hero (6.87:1 vs 4.39:1). Deviation from the handoff token — see
+ * --neutral-hero (6.87:1 vs 4.39:1). Deviation from the handoff token, see
  * docs/design/popup-refined-redesign/README.md. Repo test gate requires
  * axe 0 serious/critical; --fg-faint failed color-contrast in the `none` state. */
 .pill--neutral { background: var(--neutral-hero); color: var(--fg-muted); }
