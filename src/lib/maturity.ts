@@ -40,19 +40,31 @@ export function iconStateFor(program: ProgramSnapshot | undefined): IconState {
  * mirror that with three intensities so the popup badge reads the same as a
  * directory row. Label-first (the directory's tier vocabulary), score-fallback.
  */
-export function maturityTier(program: ProgramSnapshot | undefined): 'low' | 'mid' | 'high' {
-  if (!program) return 'low';
-  const level = (program.maturityLevel ?? '').toLowerCase();
-  // Top rung: directory's Full+CVD, plus the extension's own "Level 5"/"Level 4".
-  if (/full\s*\+|cvd|level\s*[45]\b|\bl[45]\b/.test(level)) return 'high';
-  // Middle: Full (authorises testing) and Partial (won't-pursue-legal), Advanced.
-  if (/\bfull\b|partial|advanced|intermediate|level\s*3\b|\bl3\b/.test(level)) return 'mid';
-  // Base: Basic (public policy + channel), security.txt (intake exists), low levels.
-  if (/basic|security\.?txt|level\s*[0-2]\b|\bl[0-2]\b|none/.test(level)) return 'low';
-  // Unrecognised label → lean on the numeric score.
+export type MaturityTier = 'basic' | 'partial' | 'full' | 'top';
+
+export function maturityTier(program: ProgramSnapshot | undefined): MaturityTier {
+  if (!program) return 'basic';
+  const level = (program.maturityLevel ?? '').toLowerCase().trim();
+  // The directory renders four distinct badge colours; we match its rungs 1:1.
+  // ORDER IS LOAD-BEARING: "Full+CVD" matches both the top branch and the plain
+  // `\bfull\b` branch, so top MUST be tested before full or it silently downgrades.
+  // Top: Full+CVD (full + proactive timeline) and the extension's own Level 5/4.
+  if (/full\s*\+|cvd|level\s*[45]\b|\bl[45]\b/.test(level)) return 'top';
+  // Full: explicitly authorises testing + law exemptions.
+  if (/\bfull\b/.test(level)) return 'full';
+  // Partial: won't-pursue-legal (safe-harbor without full authorisation), Advanced.
+  if (/partial|advanced|intermediate|level\s*3\b|\bl3\b/.test(level)) return 'partial';
+  // Basic: public policy + channel, security.txt (intake exists), low levels.
+  if (/basic|security\.?txt|level\s*[0-2]\b|\bl[0-2]\b|none/.test(level)) return 'basic';
+  // Unrecognised label → lean on the numeric score (label always dominates above).
   const s = program.maturityScore;
-  if (typeof s === 'number') return s >= 80 ? 'high' : s >= 50 ? 'mid' : 'low';
-  return 'low';
+  if (typeof s === 'number') {
+    if (s >= 80) return 'top';
+    if (s >= 65) return 'full';
+    if (s >= 45) return 'partial';
+    return 'basic';
+  }
+  return 'basic';
 }
 
 export function verdictFor(state: IconState, program?: ProgramSnapshot): {
