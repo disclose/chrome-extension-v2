@@ -221,18 +221,21 @@ export async function lookupDirectory(
 ): Promise<DirectoryLookupResult> {
   const baseUrl = options.baseUrl ?? DIRECTORY_BASE_URL;
 
+  // Run all search queries concurrently — sequential awaits here meant a slow-but-alive
+  // response to query N delayed every later query by its own full FETCH_TIMEOUT_MS, so a
+  // 2-query domain could take up to 2x FETCH_TIMEOUT_MS in the worst case. Promise.allSettled
+  // keeps one query's timeout/failure from blocking the others, and results are folded back in
+  // the original query order (not resolution order) so duplicate-slug precedence is unchanged.
+  const queries = buildSearchQueries(domain);
+  const settled = await Promise.allSettled(
+    queries.map((query) => fetchText(`${baseUrl}/?q=${encodeURIComponent(query)}`, options.signal)),
+  );
+
   const candidates = new Map<string, DirectorySearchRow>();
-  for (const query of buildSearchQueries(domain)) {
-    try {
-      const html = await fetchText(
-        `${baseUrl}/?q=${encodeURIComponent(query)}`,
-        options.signal,
-      );
-      for (const row of parseSearchRows(html).slice(0, 8)) {
-        if (!candidates.has(row.slug)) candidates.set(row.slug, row);
-      }
-    } catch {
-      /* ignore one query failure; later queries may still match */
+  for (const result of settled) {
+    if (result.status !== 'fulfilled') continue; // ignore one query failure; others may still match
+    for (const row of parseSearchRows(result.value).slice(0, 8)) {
+      if (!candidates.has(row.slug)) candidates.set(row.slug, row);
     }
   }
   if (candidates.size === 0) return { matched: false, candidatesConsidered: 0 };
