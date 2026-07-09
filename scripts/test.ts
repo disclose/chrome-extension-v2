@@ -142,6 +142,37 @@ async function getServiceWorker(context: BrowserContext, timeoutMs = 15000): Pro
   }
 }
 
+// Playwright reports a ServiceWorker target as soon as Chrome attaches to it — which can
+// be BEFORE background.ts's top-level module code (the chrome.tabs.onUpdated/onMessage
+// addListener calls) has actually finished running. If the first scenario's page.goto()
+// fires its 'complete' event in that window, chrome.tabs.onUpdated has no listener yet and
+// the event is lost forever (Chrome doesn't replay it) — the test then waits out the full
+// poll timeout and fails with "no cached evaluation appeared", even though nothing was ever
+// slow. A round-tripped runtime message proves the top-level script (which registers
+// onMessage in the same synchronous block as onUpdated) has fully executed.
+async function waitForServiceWorkerReady(sw: ServiceWorker, timeoutMs = 10000): Promise<void> {
+  const start = Date.now();
+  for (;;) {
+    try {
+      const ok = await (
+        sw as unknown as { evaluate: <T>(fn: () => Promise<T> | T) => Promise<T> }
+      ).evaluate(
+        () =>
+          new Promise<boolean>((resolve) => {
+            chrome.runtime.sendMessage({ type: 'getEvaluation', tabId: -1 }, () => resolve(true));
+          }),
+      );
+      if (ok) return;
+    } catch {
+      /* SW not ready to evaluate yet; retry */
+    }
+    if (Date.now() - start > timeoutMs) {
+      throw new Error('extension service worker did not become ready to receive messages in time');
+    }
+    await new Promise((r) => setTimeout(r, 50));
+  }
+}
+
 interface SwEvalContext {
   storage: Record<string, unknown>;
 }
@@ -154,10 +185,14 @@ async function readSession(sw: ServiceWorker): Promise<Record<string, unknown>> 
   );
 }
 
+// lookupDirectory has two sequential network phases (search, then per-candidate detail
+// fetch), each with its own 8s FETCH_TIMEOUT_MS — a genuinely slow directory.disclose.io
+// can legitimately take close to 16s end to end, on top of the 250ms scheduling debounce.
+// 20s gives real headroom above that worst case instead of racing it.
 async function findCachedEvaluation(
   sw: ServiceWorker,
   domain: string,
-  timeoutMs = 12000,
+  timeoutMs = 20000,
 ): Promise<Record<string, unknown> | null> {
   const start = Date.now();
   while (Date.now() - start < timeoutMs) {
@@ -208,6 +243,8 @@ async function runScenario(
     const evaluation = await findCachedEvaluation(sw, scenario.domain);
 
     if (!evaluation) {
+      const session = await readSession(sw);
+      console.error('DEBUG trace on failure:', JSON.stringify(session['__trace'], null, 2));
       recordFailure(scenario.domain, `no cached evaluation appeared in chrome.storage.session`);
       return;
     }
@@ -441,6 +478,7 @@ async function main(): Promise<void> {
   try {
     console.log('Waiting for extension service worker…');
     sw = await getServiceWorker(context);
+    await waitForServiceWorkerReady(sw);
     const extId = await getExtensionId(sw);
     console.log(`Extension id: ${extId}`);
 

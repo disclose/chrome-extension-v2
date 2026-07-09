@@ -29,8 +29,5 @@ jobs:
       - name: Build
         run: bun run build
 
-      # One retry: the level5 chrome.storage.session cache check is a known
-      # timing flake (tracked in issues) — a second run distinguishes flake
-      # from real regression.
       - name: Test (Playwright + axe-core a11y gate)
-        run: bun run test || bun run test
+        run: bun run test
