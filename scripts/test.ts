@@ -5,9 +5,8 @@ import { existsSync } from 'node:fs';
 import path from 'node:path';
 import os from 'node:os';
 import {
-  searchResponseFor,
+  listResponseFor,
   detailResponseFor,
-  EMPTY_RESULTS_HTML,
 } from '../test/fixtures/directory-mock';
 import {
   happyLookupResponse,
@@ -91,20 +90,20 @@ async function fulfillRoute(route: Route, body: string, contentType = 'text/html
 }
 
 async function setupRoutes(context: BrowserContext, lookupVariant: 'happy' | 'retaliation'): Promise<void> {
-  // 1. directory.disclose.io
-  await context.route('https://directory.disclose.io/**/*', async (route) => {
+  // 1. directory.disclose.io's widget JSON API
+  await context.route('https://widgets.disclosebot.io/directory/adf701*', async (route) => {
     const url = new URL(route.request().url());
-    if (url.pathname === '/' || url.pathname === '') {
+    if (url.pathname === '/directory/adf701.json') {
       const q = url.searchParams.get('q') ?? '';
-      await fulfillRoute(route, searchResponseFor(q));
+      await fulfillRoute(route, listResponseFor(q), 'application/json');
       return;
     }
-    const slug = url.pathname.replace(/^\//, '').replace(/\/$/, '');
-    if (slug.length === 0) {
-      await fulfillRoute(route, EMPTY_RESULTS_HTML);
+    const detailMatch = url.pathname.match(/^\/directory\/adf701\/organization\/([^/]+)\.json$/);
+    if (!detailMatch) {
+      await route.fulfill({ status: 404, body: 'not mocked' });
       return;
     }
-    await fulfillRoute(route, detailResponseFor(slug));
+    await fulfillRoute(route, detailResponseFor(decodeURIComponent(detailMatch[1]!)), 'application/json');
   });
 
   // 2. lookup.disclose.io
@@ -186,7 +185,7 @@ async function readSession(sw: ServiceWorker): Promise<Record<string, unknown>> 
 }
 
 // lookupDirectory has two sequential network phases (search, then per-candidate detail
-// fetch), each with its own 8s FETCH_TIMEOUT_MS — a genuinely slow directory.disclose.io
+// fetch), each with its own 8s FETCH_TIMEOUT_MS — a genuinely slow directory widget API
 // can legitimately take close to 16s end to end, on top of the 250ms scheduling debounce.
 // 20s gives real headroom above that worst case instead of racing it.
 async function findCachedEvaluation(

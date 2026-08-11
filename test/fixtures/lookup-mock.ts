@@ -6,6 +6,8 @@ export function happyLookupResponse(domain: string): LookupReport {
     assetType: 'domain',
     timestamp: new Date().toISOString(),
     status: 'complete',
+    requestId: 'req_fixture_happy',
+    hasErrors: false,
     attribution: {
       organization: 'Example Org',
       industry: 'technology',
@@ -35,6 +37,8 @@ export function happyLookupResponse(domain: string): LookupReport {
         maturity_score: 50,
       },
     },
+    dataSources: [],
+    chains: [],
   };
 }
 
@@ -44,6 +48,9 @@ export function retaliationLookupResponse(domain: string): LookupReport {
     assetType: 'domain',
     timestamp: new Date().toISOString(),
     status: 'partial',
+    requestId: 'req_fixture_retaliation',
+    hasErrors: false,
+    attribution: { confidence: 'low' },
     contacts: [
       {
         type: 'convention',
@@ -62,5 +69,8 @@ export function retaliationLookupResponse(domain: string): LookupReport {
         verified: false,
       },
     ],
+    details: {},
+    dataSources: [],
+    chains: [],
   };
 }

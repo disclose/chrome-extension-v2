@@ -8,7 +8,7 @@ current (July 2026) Chrome Web Store rules.
 **Done & shipped:** disclose.io brand alignment + this store package are merged
 to `main` (PR #2). Privacy policy is **LIVE** at
 https://disclose-extension-privacy.pages.dev/. `bun run package` →
-`disclose-extension.zip` builds green from `main`. Publisher account =
+`artifacts/disclose-extension-vX.Y.Z.zip` builds green from `main`. Publisher account =
 **casey@disclose.io**.
 
 **Blocked on:** the manual dashboard submission. Chrome forbids extension-based
@@ -16,7 +16,7 @@ automation on the Web Store domain (*"The extensions gallery cannot be scripted"
 so computer-use CANNOT drive it — the first submission is human-only.
 
 **Resume:** sign into https://chrome.google.com/webstore/devconsole/ as
-casey@disclose.io and follow "Publish steps" below — upload `disclose-extension.zip`,
+casey@disclose.io and follow "Publish steps" below — upload the versioned extension zip,
 paste from `LISTING.md`, add `screenshots/*.png` + `promo-tile-440x280.png`, set
 the privacy URL, submit.
 
@@ -31,7 +31,7 @@ The first listing (metadata + screenshots) is dashboard-only regardless.
 - `make-assets.ts` — regenerates the store screenshots + promo tile
 - `screenshots/*.png` — 1280×800 store screenshots
 - `promo-tile-440x280.png` — small promo tile
-- the package itself: `bun run package` at repo root → `disclose-extension.zip`
+- the package itself: `bun run package` at repo root → `artifacts/disclose-extension-vX.Y.Z.zip`
 
 ## Prerequisites (the human parts)
 1. **Merge PR #1** and build from `main` (finalized brand build).
@@ -48,7 +48,7 @@ The first listing (metadata + screenshots) is dashboard-only regardless.
    swap the URL before submitting.
 
 ## Publish steps
-1. `bun run package` → `disclose-extension.zip`.
+1. `bun run package` → `artifacts/disclose-extension-vX.Y.Z.zip`.
 2. developer.chrome.com → Web Store dashboard → **New item** → upload the zip.
 3. Fill the listing from `LISTING.md` (name, summary, description, category,
    single purpose).

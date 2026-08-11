@@ -18,14 +18,14 @@ git clone https://github.com/disclose/chrome-extension-v2
 cd chrome-extension-v2
 
 # the package itself — download the prebuilt zip from the release:
-gh release download v0.1.0 --repo disclose/chrome-extension-v2 --pattern 'disclose-extension.zip'
+gh release download v0.2.0 --repo disclose/chrome-extension-v2 --pattern 'disclose-extension-v0.2.0.zip'
 #   …or, if gh isn't set up, grab it from:
-#   https://github.com/disclose/chrome-extension-v2/releases/tag/v0.1.0
+#   https://github.com/disclose/chrome-extension-v2/releases/tag/v0.2.0
 #   …or build it fresh (no Playwright needed):  bun install --ignore-scripts && bun run package
 ```
 
 After this you have, in the repo root / `store/`:
-- `disclose-extension.zip` — the MV3 package to upload (v0.1.0)
+- `artifacts/disclose-extension-v0.2.0.zip` — the MV3 package to upload (v0.2.0)
 - `store/LISTING.md` — every text field, ready to paste
 - `store/screenshots/*.png` — 3 store screenshots (1280×800)
 - `store/promo-tile-440x280.png` — small promo tile
@@ -37,7 +37,7 @@ After this you have, in the repo root / `store/`:
 
 ## 2. Create the item
 1. Go to **https://chrome.google.com/webstore/devconsole/**.
-2. **New item** → upload **`disclose-extension.zip`** → wait for it to process.
+2. **New item** → upload **`disclose-extension-v0.2.0.zip`** → wait for it to process.
 
 ## 3. Fill the listing (paste from `store/LISTING.md`)
 - **Name:** `disclose.io` (lowercase — brand style)

@@ -9,6 +9,7 @@ import type {
   TabEvaluation,
 } from '../types';
 import { verdictFor, safeHarborLabel, maturityTier } from '../lib/maturity';
+import { describeLookupPresentation } from '../lib/route-presentation';
 
 const $ = (id: string): HTMLElement => {
   const el = document.getElementById(id);
@@ -221,13 +222,80 @@ function renderRetaliation(report: LookupReport | null): void {
   show(banner, true);
 }
 
+function renderLookupSummary(report: LookupReport): void {
+  const summary = $('lookup-summary');
+  const presentation = describeLookupPresentation(report);
+  if (!presentation.summary) {
+    show(summary, false);
+    return;
+  }
+
+  setText($('lookup-route-label'), presentation.summary.label);
+  setText($('lookup-route-headline'), presentation.summary.headline);
+  show(summary, true);
+}
+
+function makeContactCard(contact: LookupReport['contacts'][number]): HTMLLIElement {
+  const li = document.createElement('li');
+  li.className = 'contact';
+
+  const head = document.createElement('div');
+  head.className = 'contact__head';
+  const label = document.createElement('span');
+  label.className = 'contact__label';
+  label.textContent = contact.label || contact.type;
+  const conf = document.createElement('span');
+  conf.className = `contact__conf contact__conf--${contact.confidence}`;
+  conf.textContent = contact.confidence;
+  head.appendChild(label);
+  head.appendChild(conf);
+
+  const meta = document.createElement('div');
+  meta.className = 'contact__meta';
+  const metaParts = [contact.type.replace(/_/g, ' '), contact.source];
+  if (contact.deliveryAgent) metaParts.push(`via ${contact.deliveryAgent}`);
+  meta.textContent = metaParts.join(' · ');
+
+  const valueRow = document.createElement('div');
+  valueRow.className = 'contact__value-row';
+  const value = document.createElement('span');
+  value.className = 'contact__value';
+  if (/^https?:\/\//i.test(contact.value)) {
+    const a = document.createElement('a');
+    a.href = contact.value;
+    a.textContent = contact.value;
+    a.target = '_blank';
+    a.rel = 'noopener';
+    value.appendChild(a);
+  } else {
+    value.textContent = contact.value;
+  }
+  const copy = document.createElement('button');
+  copy.type = 'button';
+  copy.className = 'contact__copy';
+  copy.textContent = 'Copy';
+  copy.addEventListener('click', () => {
+    void navigator.clipboard?.writeText(contact.value);
+    copy.textContent = 'Copied ✓';
+    setTimeout(() => { copy.textContent = 'Copy'; }, 1400);
+  });
+  valueRow.appendChild(value);
+  valueRow.appendChild(copy);
+
+  li.appendChild(head);
+  li.appendChild(meta);
+  li.appendChild(valueRow);
+  return li;
+}
+
 function renderLookupContacts(report: LookupReport): void {
   const section = $('lookup-results');
   const list = $('lookup-contacts');
-  list.innerHTML = '';
+  list.replaceChildren();
+  renderLookupSummary(report);
 
-  const nonThreats = report.contacts.filter((c) => c.source !== 'research-threats');
-  if (nonThreats.length === 0) {
+  const presentation = describeLookupPresentation(report);
+  if (presentation.groups.length === 0) {
     const li = document.createElement('li');
     li.textContent = 'No published security contact found for this site.';
     list.appendChild(li);
@@ -235,55 +303,34 @@ function renderLookupContacts(report: LookupReport): void {
     return;
   }
 
-  for (const contact of nonThreats.slice(0, 8)) {
-    const li = document.createElement('li');
-
-    // NEW: card structure with confidence badge + copy button.
-    const head = document.createElement('div');
-    head.className = 'contact__head';
-    const label = document.createElement('span');
-    label.className = 'contact__label';
-    label.textContent = contact.label || contact.type;
-    const conf = document.createElement('span');
-    conf.className = `contact__conf contact__conf--${contact.confidence}`;
-    conf.textContent = contact.confidence;
-    head.appendChild(label);
-    head.appendChild(conf);
-
-    const meta = document.createElement('div');
-    meta.className = 'contact__meta';
-    meta.textContent = `${contact.type.replace(/_/g, ' ')} · ${contact.source}`;
-
-    const valueRow = document.createElement('div');
-    valueRow.className = 'contact__value-row';
-    const value = document.createElement('span');
-    value.className = 'contact__value';
-    if (/^https?:\/\//i.test(contact.value)) {
-      const a = document.createElement('a');
-      a.href = contact.value;
-      a.textContent = contact.value;
-      a.target = '_blank';
-      a.rel = 'noopener';
-      value.appendChild(a);
-    } else {
-      value.textContent = contact.value;
+  for (const group of presentation.groups) {
+    const groupItem = document.createElement('li');
+    groupItem.className = 'contact-group';
+    const heading = document.createElement('div');
+    heading.className = 'contact-group__heading';
+    const entity = document.createElement('strong');
+    entity.textContent = group.entity;
+    heading.appendChild(entity);
+    if (group.routeLabel) {
+      const route = document.createElement('span');
+      route.className = 'route-label';
+      route.textContent = group.routeLabel;
+      heading.appendChild(route);
     }
-    const copy = document.createElement('button');
-    copy.type = 'button';
-    copy.className = 'contact__copy';
-    copy.textContent = 'Copy';
-    copy.addEventListener('click', () => {
-      void navigator.clipboard?.writeText(contact.value);
-      copy.textContent = 'Copied ✓';
-      setTimeout(() => { copy.textContent = 'Copy'; }, 1400);
-    });
-    valueRow.appendChild(value);
-    valueRow.appendChild(copy);
-
-    li.appendChild(head);
-    li.appendChild(meta);
-    li.appendChild(valueRow);
-    list.appendChild(li);
+    groupItem.appendChild(heading);
+    if (group.scopeNote ?? group.rationale) {
+      const note = document.createElement('p');
+      note.className = 'contact-group__note';
+      note.textContent = group.scopeNote ?? group.rationale ?? '';
+      groupItem.appendChild(note);
+    }
+    const contacts = document.createElement('ul');
+    contacts.className = 'contact-group__contacts';
+    for (const contact of group.contacts.slice(0, 8)) {
+      contacts.appendChild(makeContactCard(contact));
+    }
+    groupItem.appendChild(contacts);
+    list.appendChild(groupItem);
   }
 
   show(section, true);
