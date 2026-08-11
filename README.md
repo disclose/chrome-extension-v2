@@ -36,6 +36,16 @@ Open the popup and you get the details in plain language: does it have **safe ha
 
 No account. No cross-browser tracking. It only ever sends the site's **domain**, never your URL, your page, or any account information. The optional live lookup also carries a random token that exists only for the current browser session, so the lookup service can apply fair-use limits.
 
+## See a live lookup
+
+<div align="center">
+
+<a href="docs/demo/lookup-demo.mp4"><img src="docs/demo/lookup-demo-poster.png" alt="Live disclose.io lookup for cloudflare.com, showing a first-party reporting path" width="820"></a>
+
+<a href="docs/demo/lookup-demo.mp4"><strong>▶ Watch the 19-second live lookup demo (MP4)</strong></a>
+
+</div>
+
 ## Why this matters, even if you never report a bug
 
 Most people will never file a vulnerability report. So why should you care whether a website "welcomes security researchers"?

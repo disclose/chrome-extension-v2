@@ -1,26 +1,27 @@
 ---
-task: "Release reconciled disclose Chrome extension"
+task: "Create live lookup demo video and README reference"
 slug: 20260811-071845_lookup-api-reconciliation
 project: chrome-extension-v2
 effort: E4
 effort_source: auto
-phase: execute
-progress: 16/20
+phase: verify
+progress: 29/30
 mode: iterate
 started: 2026-08-11T07:18:45Z
-updated: 2026-08-11T08:28:23Z
-iteration: 2
-principal_stated_goal: "get this tested and finished, package it up, push to the repo with a version update and a compiled version that people can easily download and use"
+updated: 2026-08-11T17:47:27Z
+iteration: 3
+principal_stated_goal: "can you please create a demo video of a lookup using the tool, and upload it to repo with a reference in the readme"
 principal_stated_goal_source: explicit-revision
 principal_stated_goal_signal: 4
-principal_stated_goal_locked: 2026-08-11T08:17:35Z
+principal_stated_goal_locked: 2026-08-11T17:30:05Z
 context_sufficient: true
 interview_invoked: false
-current_state: "The popup consumes a flat legacy contact list, and its directory status check scrapes server-rendered HTML instead of the supported widget API."
-ideal_state: "Version 0.2.0 is merged to main, tagged, and published with a checksum-verifiable extension archive that a person can download, unpack, and load directly in Chrome."
+current_state: "Version 0.2.0 is released, but the README's existing walkthrough predates the route-aware live lookup and does not demonstrate the current owner-versus-coordinator result."
+ideal_state: "A concise, polished video in the repository shows a real current lookup from directory status through grouped live results, and the README makes the video obvious and easy to play."
 capabilities_invoked:
   - ISA
   - Interceptor
+  - Remotion
 ---
 
 ## Problem
@@ -63,7 +64,7 @@ requires: directory-disclose-io — `widgets.disclosebot.io/directory/adf701(.js
 
 ## Goal
 
-"get this tested and finished, package it up, push to the repo with a version update and a compiled version that people can easily download and use" Version 0.2.0 must contain the reconciled lookup and directory integrations, pass contract, type, build, CI, and real-Chrome verification, land on the repository's main branch, and be published as a GitHub release with a directly installable zip plus checksum.
+Version 0.2.0 is already released and verified. This iteration adds a compact, muted-first demo that shows a current Cloudflare directory result, the live lookup action, first-party owner routes, and clearly separated coordinator fallbacks; the repository README must present a poster linked to the MP4 plus a direct playback link.
 
 ## Criteria
 
@@ -86,10 +87,20 @@ requires: directory-disclose-io — `widgets.disclosebot.io/directory/adf701(.js
 - [x] ISC-14: Packaging emits one flat load-unpacked extension archive.
 - [x] ISC-15: Release archive contains every manifest-referenced runtime asset.
 - [x] ISC-16: Anti: release archive contains no source maps or secrets.
-- [ ] ISC-17: GitHub CI passes for the release commit.
-- [ ] ISC-18: Release tag v0.2.0 resolves to the merged main commit.
-- [ ] ISC-19: GitHub release exposes the zip and SHA256SUMS assets.
-- [ ] ISC-20: Bridge: downloaded release archive completes both popup API flows in Chrome.
+- [x] ISC-17: GitHub CI passes for the release commit.
+- [x] ISC-18: Release tag v0.2.0 resolves to the merged main commit.
+- [x] ISC-19: GitHub release exposes the zip and SHA256SUMS assets.
+- [x] ISC-20: Bridge: downloaded release archive completes both popup API flows in Chrome.
+- [x] ISC-21: Antecedent: the story visibly progresses from directory signal to routed result.
+- [x] ISC-22: The demo MP4 is H.264 yuv420p at 1280×720.
+- [x] ISC-23: The demo lasts between 12 and 24 seconds.
+- [x] ISC-24: The committed demo MP4 is no larger than 5 MB.
+- [x] ISC-25: The README poster links to the committed demo MP4.
+- [x] ISC-26: The README includes a plainly labeled direct video link.
+- [x] ISC-27: Anti: no personal browser state appears in any demo frame.
+- [x] ISC-28: Demo source frames come from the current extension using both live APIs.
+- [x] ISC-29: Frame scrub contains no blank, clipped, or unreadable scene.
+- [ ] ISC-30: GitHub contains the video, poster, README reference, and regeneration source.
 
 ## Test Strategy
 
@@ -115,6 +126,16 @@ requires: directory-disclose-io — `widgets.disclosebot.io/directory/adf701(.js
 | ISC-18 | derived: versioned repository state | bash | tag target SHA equals origin/main SHA | exact equality | GitHub refs and commits APIs |
 | ISC-19 | literal | bash | release has versioned zip and SHA256SUMS | two uploaded assets | GitHub releases API |
 | ISC-20 | literal | screenshot | archive downloaded from GitHub loads and renders live directory plus lookup results | both rendered flows | Interceptor browser + viewed screenshot |
+| ISC-21 | derived: coherent demo experience | frame-scrub | directory state, click, first-party result, and fallback explanation appear in narrative order | all four beats in order | ffmpeg contact sheet + viewed frames |
+| ISC-22 | derived: broadly playable repository video | media-metadata | codec, pixel format, and dimensions | H.264, yuv420p, 1280×720 | ffprobe |
+| ISC-23 | derived: concise demo | media-metadata | MP4 duration | 12–24 seconds | ffprobe |
+| ISC-24 | derived: repository-friendly artifact | filesystem | committed MP4 size | ≤ 5,000,000 bytes | stat |
+| ISC-25 | literal | markdown-browser | README poster target | links to docs/demo/lookup-demo.mp4 | Interceptor browser |
+| ISC-26 | literal | markdown-read | direct playback label and href | both present | rg README.md |
+| ISC-27 | derived: privacy-safe public artifact | frame-scrub | every sampled frame | isolated Chrome only; no accounts, cookies, or unrelated tabs | ffmpeg contact sheet + viewed frames |
+| ISC-28 | literal | browser-live | directory status and live route-aware lookup source captures | both current live API flows rendered | Interceptor + Apple Events DOM read |
+| ISC-29 | derived: polished visual output | frame-scrub | sampled frames across full duration | zero blank, clipped, or unreadable scene | ffmpeg contact sheet + viewed image |
+| ISC-30 | literal | git-diff | intended demo source and documentation artifacts | scoped video, poster, README, and source tree in pushed branch/PR | git diff + GitHub PR |
 
 ## Features
 
@@ -126,6 +147,7 @@ requires: directory-disclose-io — `widgets.disclosebot.io/directory/adf701(.js
 | BrowserProof | Build and validate a real unpacked extension against both service APIs. | ISC-12 | RoutePresentation, DirectoryAPI | false |
 | ReleasePackage | Synchronize version metadata and emit a validated downloadable archive plus checksum. | ISC-13, ISC-14, ISC-15, ISC-16 | APIContract, RoutePresentation, DirectoryAPI | false |
 | RepositoryRelease | Merge, tag, publish, download, and browser-verify the public release. | ISC-17, ISC-18, ISC-19, ISC-20 | ReleasePackage | false |
+| LookupDemo | Capture the current live workflow, animate it into a concise video, document playback, and publish the scoped repository change. | ISC-21, ISC-22, ISC-23, ISC-24, ISC-25, ISC-26, ISC-27, ISC-28, ISC-29, ISC-30 | RepositoryRelease | false |
 
 ## Decisions
 
@@ -140,6 +162,10 @@ requires: directory-disclose-io — `widgets.disclosebot.io/directory/adf701(.js
 - 2026-08-11 08:17: Publish a flat zip rather than a CRX because the repository's documented pre-store install path is Chrome's Load unpacked flow; unsigned CRX installation is not the supported path.
 - 2026-08-11 08:21: ❌ DEAD END: Rejected a persistent tag-triggered workflow with repository-wide `contents: write`; publish this specific release through a one-off authenticated GitHub action instead of leaving standing release authority.
 - 2026-08-11 08:28: Package validation scans archive paths and credential-shaped content, verifies every manifest-referenced runtime path, and writes a SHA-256 checksum before the artifact can be published.
+- 2026-08-11 17:30: refined: The new explicit goal adds ISC-21 through ISC-30 without renumbering the completed release criteria.
+- 2026-08-11 17:30: Use a 16:9, muted-first Remotion composition built from isolated live-Chrome captures; explanatory on-screen copy makes narration unnecessary and keeps the repository asset small.
+- 2026-08-11 17:30: Keep the older multi-state walkthrough as historical breadth; add a distinct focused lookup demo rather than silently replacing it.
+- 2026-08-11 17:47: Post-process the Remotion source encode to H.264/yuv420p with no audio and fast-start metadata; this removes an empty AAC track, stays broadly playable, and leaves a comfortable repository-size margin.
 
 ## Changelog
 
@@ -168,6 +194,11 @@ requires: directory-disclose-io — `widgets.disclosebot.io/directory/adf701(.js
   learned: a usable release is a validated artifact contract, not merely a successful compression command
   criterion now: ISC-13 through ISC-16 require a versioned archive, runtime-path audit, forbidden-content scan, and SHA256SUMS
 
+- 2026-08-11 | conjectured: the existing mocked multi-state walkthrough was sufficient as the repository demo
+  refuted by: it predates the route-aware API release and never shows the current first-party versus coordinator presentation
+  learned: the README needs a focused live-lookup narrative in addition to broad historical state coverage
+  criterion now: ISC-21 through ISC-30 require a current, privacy-safe, compact video and an obvious README playback path
+
 ## Verification
 
 - `bun test test/lookup-contract.test.ts test/directory-api.test.ts`: 10 pass, 0 fail, 29 assertions.
@@ -181,3 +212,11 @@ requires: directory-disclose-io — `widgets.disclosebot.io/directory/adf701(.js
 - `bun run package --tag v0.2.0`: built `artifacts/disclose-extension-v0.2.0.zip` and `SHA256SUMS`; internal validation found every manifest runtime path, no forbidden paths, and no credential-shaped content. SHA-256: `312198048e3d8ab29d1e5f847ffc6c8dfef39d40f36fa70b6c33097e7a1e16f8`.
 - `unzip -t artifacts/disclose-extension-v0.2.0.zip`: every archive member passed CRC validation; `manifest.json` is at archive root. `shasum -a 256 -c SHA256SUMS`: OK.
 - Exact local archive Chrome proof: a fresh extraction loaded in isolated Chrome for Testing 151. Directory UI rendered `In directory`, `Has a way to report security issues`, `Basic`, score 47, Policy, and security.txt. Live lookup completed in 0.1s and rendered `First-party reporting path` plus separately labeled Cloudflare CNA and CERT/CC coordinator fallbacks; the resulting popup screenshot was viewed before disposable-profile cleanup.
+- ISC-17: PR #24 reported three successful checks: CI typecheck/build/test, CodeQL analysis, and Code scanning results.
+- ISC-18: `git rev-parse origin/main 'v0.2.0^{}'` returned the same commit, `3acb2f6dd7db443ce90f8822d7bfafaa2f37ce5a`.
+- ISC-19: GitHub's public releases API reported non-draft v0.2.0 with uploaded `disclose-extension-v0.2.0.zip` and `SHA256SUMS` assets.
+- ISC-20: The independently downloaded public ZIP passed SHA-256 and CRC checks, then rendered both the directory badge and live route-aware Cloudflare lookup in isolated Chrome for Testing 151.
+- ISC-21, ISC-27, ISC-28, ISC-29: isolated Chrome for Testing captured the current extension's live Cloudflare directory result and route-aware lookup result; the final encoded-video scrub shows the beats in order with readable, non-overlapping scene boundaries and no personal profile state. The named Interceptor capture group was closed and then listed as empty.
+- ISC-22 through ISC-24: `ffprobe` reports one H.264/yuv420p 1280×720 stream at 30fps, 19.000 seconds, 2,625,960 bytes, with no audio stream; a full `ffmpeg` decode completed without errors.
+- ISC-25 and ISC-26: `README.md` contains a poster image linked to `docs/demo/lookup-demo.mp4` and a separate `▶ Watch the 19-second live lookup demo (MP4)` link; both referenced files exist.
+- Demo regression check: `bun run verify` passes 12 tests (36 assertions), strict TypeScript, and the production extension build after the documentation/media addition.
