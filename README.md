@@ -40,9 +40,9 @@ No account. No cross-browser tracking. It only ever sends the site's **domain**,
 
 <div align="center">
 
-<a href="docs/demo/lookup-demo.mp4"><img src="docs/demo/lookup-demo-poster.png" alt="Live disclose.io lookup for cloudflare.com, showing a first-party reporting path" width="820"></a>
+<a href="docs/demo/lookup-demo.mp4?raw=1"><img src="docs/demo/lookup-demo-poster.png" alt="Live disclose.io lookup for cloudflare.com, showing a first-party reporting path" width="820"></a>
 
-<a href="docs/demo/lookup-demo.mp4"><strong>▶ Watch the 19-second live lookup demo (MP4)</strong></a>
+<a href="docs/demo/lookup-demo.mp4?raw=1"><strong>▶ Watch the 19-second live lookup demo (MP4)</strong></a>
 
 </div>
 

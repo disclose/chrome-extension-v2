@@ -130,7 +130,7 @@ Version 0.2.0 is already released and verified. This iteration adds a compact, m
 | ISC-22 | derived: broadly playable repository video | media-metadata | codec, pixel format, and dimensions | H.264, yuv420p, 1280×720 | ffprobe |
 | ISC-23 | derived: concise demo | media-metadata | MP4 duration | 12–24 seconds | ffprobe |
 | ISC-24 | derived: repository-friendly artifact | filesystem | committed MP4 size | ≤ 5,000,000 bytes | stat |
-| ISC-25 | literal | markdown-browser | README poster target | links to docs/demo/lookup-demo.mp4 | Interceptor browser |
+| ISC-25 | literal | markdown-browser | README poster target | links to docs/demo/lookup-demo.mp4?raw=1 | Interceptor browser |
 | ISC-26 | literal | markdown-read | direct playback label and href | both present | rg README.md |
 | ISC-27 | derived: privacy-safe public artifact | frame-scrub | every sampled frame | isolated Chrome only; no accounts, cookies, or unrelated tabs | ffmpeg contact sheet + viewed frames |
 | ISC-28 | literal | browser-live | directory status and live route-aware lookup source captures | both current live API flows rendered | Interceptor + Apple Events DOM read |
@@ -218,5 +218,5 @@ Version 0.2.0 is already released and verified. This iteration adds a compact, m
 - ISC-20: The independently downloaded public ZIP passed SHA-256 and CRC checks, then rendered both the directory badge and live route-aware Cloudflare lookup in isolated Chrome for Testing 151.
 - ISC-21, ISC-27, ISC-28, ISC-29: isolated Chrome for Testing captured the current extension's live Cloudflare directory result and route-aware lookup result; the final encoded-video scrub shows the beats in order with readable, non-overlapping scene boundaries and no personal profile state. The named Interceptor capture group was closed and then listed as empty.
 - ISC-22 through ISC-24: `ffprobe` reports one H.264/yuv420p 1280×720 stream at 30fps, 19.000 seconds, 2,625,960 bytes, with no audio stream; a full `ffmpeg` decode completed without errors.
-- ISC-25 and ISC-26: `README.md` contains a poster image linked to `docs/demo/lookup-demo.mp4` and a separate `▶ Watch the 19-second live lookup demo (MP4)` link; both referenced files exist.
+- ISC-25 and ISC-26: `README.md` contains a poster image and separate `▶ Watch the 19-second live lookup demo (MP4)` label, both linked with GitHub's `?raw=1` playback path; both referenced files exist.
 - Demo regression check: `bun run verify` passes 12 tests (36 assertions), strict TypeScript, and the production extension build after the documentation/media addition.
