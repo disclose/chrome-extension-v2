@@ -4,11 +4,11 @@ slug: 20260811-071845_lookup-api-reconciliation
 project: chrome-extension-v2
 effort: E4
 effort_source: auto
-phase: verify
-progress: 29/30
+phase: complete
+progress: 30/30
 mode: iterate
 started: 2026-08-11T07:18:45Z
-updated: 2026-08-11T17:47:27Z
+updated: 2026-08-11T17:57:08Z
 iteration: 3
 principal_stated_goal: "can you please create a demo video of a lookup using the tool, and upload it to repo with a reference in the readme"
 principal_stated_goal_source: explicit-revision
@@ -100,7 +100,7 @@ Version 0.2.0 is already released and verified. This iteration adds a compact, m
 - [x] ISC-27: Anti: no personal browser state appears in any demo frame.
 - [x] ISC-28: Demo source frames come from the current extension using both live APIs.
 - [x] ISC-29: Frame scrub contains no blank, clipped, or unreadable scene.
-- [ ] ISC-30: GitHub contains the video, poster, README reference, and regeneration source.
+- [x] ISC-30: GitHub contains the video, poster, README reference, and regeneration source.
 
 ## Test Strategy
 
@@ -220,3 +220,4 @@ Version 0.2.0 is already released and verified. This iteration adds a compact, m
 - ISC-22 through ISC-24: `ffprobe` reports one H.264/yuv420p 1280×720 stream at 30fps, 19.000 seconds, 2,625,960 bytes, with no audio stream; a full `ffmpeg` decode completed without errors.
 - ISC-25 and ISC-26: `README.md` contains a poster image and separate `▶ Watch the 19-second live lookup demo (MP4)` label, both linked with GitHub's `?raw=1` playback path; both referenced files exist.
 - Demo regression check: `bun run verify` passes 12 tests (36 assertions), strict TypeScript, and the production extension build after the documentation/media addition.
+- ISC-30: branch `codex/lookup-demo-video` and draft PR #25 contain the video, 1280×720 poster, README playback links, and locked Remotion regeneration source. GitHub rendered the poster at its natural dimensions; the independently downloaded remote MP4 was 2,625,960 bytes and matched local SHA-256 `d1e75fb52720e75e1b008d75aa700b403302458be70ab8295495c7792f343b75` exactly.
