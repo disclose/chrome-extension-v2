@@ -1,6 +1,7 @@
 node_modules/
 dist/
 disclose-extension.zip
+artifacts/
 demo-out/
 icons/
 test/screenshots/

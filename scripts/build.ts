@@ -1,6 +1,6 @@
 #!/usr/bin/env bun
 import { build } from 'esbuild';
-import { mkdir, writeFile, readFile, rm, copyFile } from 'node:fs/promises';
+import { mkdir, writeFile, readFile, rm, copyFile, cp } from 'node:fs/promises';
 import { existsSync } from 'node:fs';
 import path from 'node:path';
 import sharp from 'sharp';
@@ -105,6 +105,7 @@ async function copyStaticAssets(): Promise<void> {
   await copyFile(path.join(ROOT, 'manifest.json'), path.join(DIST, 'manifest.json'));
   await copyFile(path.join(ROOT, 'src/popup/popup.html'), path.join(DIST, 'popup.html'));
   await copyFile(path.join(ROOT, 'src/popup/popup.css'), path.join(DIST, 'popup.css'));
+  await cp(path.join(ROOT, 'rules'), path.join(DIST, 'rules'), { recursive: true });
 }
 
 async function renderIcons(): Promise<void> {

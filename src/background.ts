@@ -23,6 +23,58 @@ interface PendingTab {
 const pending = new Map<number, PendingTab>();
 const tabEvaluations = new Map<number, TabEvaluation>();
 const DEBOUNCE_MS = 250;
+const LOOKUP_SESSION_STORAGE_KEY = 'lookup:session-id';
+const LOOKUP_CACHE_STORAGE_PREFIX = 'lookup:response:';
+
+interface CachedLookup {
+  report: LookupReport;
+  etag?: string;
+}
+
+function lookupCacheKey(domain: string): string {
+  return LOOKUP_CACHE_STORAGE_PREFIX + domain;
+}
+
+function isCachedLookup(value: unknown): value is CachedLookup {
+  if (!value || typeof value !== 'object') return false;
+  const candidate = value as Partial<CachedLookup>;
+  return Boolean(candidate.report && typeof candidate.report === 'object');
+}
+
+async function getLookupSessionId(): Promise<string> {
+  const stored = await chrome.storage.session.get(LOOKUP_SESSION_STORAGE_KEY);
+  const existing = stored[LOOKUP_SESSION_STORAGE_KEY];
+  if (typeof existing === 'string' && existing.length >= 20) return existing;
+
+  const sessionId = `dio_${crypto.randomUUID()}`;
+  await chrome.storage.session.set({ [LOOKUP_SESSION_STORAGE_KEY]: sessionId });
+  return sessionId;
+}
+
+async function getCachedLookup(domain: string): Promise<CachedLookup | undefined> {
+  const key = lookupCacheKey(domain);
+  const stored = await chrome.storage.session.get(key);
+  const candidate = stored[key];
+  return isCachedLookup(candidate) ? candidate : undefined;
+}
+
+async function runCachedLookup(domain: string): Promise<LookupReport> {
+  const [sessionId, cached] = await Promise.all([
+    getLookupSessionId(),
+    getCachedLookup(domain),
+  ]);
+  const result = await runLookup(domain, {
+    lookupSessionId: sessionId,
+    etag: cached?.etag,
+    cachedReport: cached?.report,
+  });
+  if (!result.notModified) {
+    await chrome.storage.session.set({
+      [lookupCacheKey(domain)]: { report: result.report, etag: result.etag } satisfies CachedLookup,
+    });
+  }
+  return result.report;
+}
 
 function makeIneligibleEvaluation(domain: string): TabEvaluation {
   return {
@@ -146,7 +198,7 @@ chrome.runtime.onMessage.addListener((message: PopupRequest | LookupRequest, _se
   if (message.type === 'runLookup') {
     void (async () => {
       try {
-        const report: LookupReport = await runLookup(message.domain);
+        const report = await runCachedLookup(message.domain);
         const response: LookupResponse = { report };
         sendResponse(response);
       } catch (err) {

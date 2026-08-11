@@ -23,20 +23,22 @@ or any account information. The extension has no login and no user account.
 
 | When | Where | Method | What is sent |
 |------|-------|--------|--------------|
-| Automatically, when you switch to or navigate a tab | `directory.disclose.io` | `GET` | the registrable domain, to look up its disclosure status |
-| Only when you click **"Look this up"** | `lookup.disclose.io/api/lookup` | `POST` | the registrable domain, to run a deeper security-contact lookup |
+| Automatically, when you switch to or navigate a tab | directory.disclose.io's widget API | `GET` | the registrable domain, to look up its disclosure status |
+| Only when you click **"Look this up"** | `lookup.disclose.io/api/lookup` | `POST` | the registrable domain and a random browser-session token, to run a deeper security-contact lookup and apply fair-use limits |
 
-Both requests are **anonymous**: they carry no cookies, no credentials, and no
-identifier — only the domain and a static extension User-Agent string. Both
-endpoints are operated by **the disclose.io Project**, a nonprofit vulnerability-
-disclosure standardization effort. The domain is **not** sent to any other party,
-advertiser, or analytics service.
+Both requests carry no cookies, credentials, or account identity. The lookup
+token is random, opaque, and stored only in Chrome's session storage: it is
+cleared when the browser closes and is not a cookie, account ID, or cross-browser
+identifier. Both endpoints are operated by **the disclose.io Project**, a
+nonprofit vulnerability-disclosure standardization effort. The domain is **not**
+sent to any other party, advertiser, or analytics service.
 
 ## Data storage
 
-Results are cached **locally on your device** using Chrome's `storage` API, to
-avoid repeat network requests. This cache is not transmitted to disclose.io or
-anyone else, and is cleared when you remove the extension.
+Results and the random lookup token are cached **locally for the current browser
+session** using Chrome's `storage.session` API, to avoid repeat network requests.
+This cache is not transmitted to disclose.io or anyone else and is cleared when
+the browser closes or you remove the extension.
 
 ## Logging by the receiving services
 

@@ -29,8 +29,9 @@ security.txt, plus the site's disclosure-maturity score. One click runs a deeper
 security-contact lookup via lookup.disclose.io.
 
 Privacy-first by design: the extension only ever sends the current site's
-**domain** to disclose.io, never your URL, your page contents, or anything that
-identifies you. No account, no tracking, no ads.
+**domain** to disclose.io, never your URL or page contents. The optional live
+lookup uses a random browser-session token for fair-use limits; there is no
+account, cross-browser tracking, or advertising.
 
 disclose.io is a vendor-agnostic, nonprofit project driving the adoption of
 vulnerability-disclosure best practice: bilateral safe harbor, plain-language

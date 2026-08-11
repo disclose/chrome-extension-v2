@@ -34,7 +34,7 @@ The moment you land on a website, the disclose.io icon in your toolbar tells you
 
 Open the popup and you get the details in plain language: does it have **safe harbor**? A **bug bounty**? A published **policy** and **security.txt**? And an overall **disclosure-maturity** score, straight from the disclose.io directory. One click runs a deeper live lookup for a security contact.
 
-No account. No tracking. It only ever sends the site's **domain**, never your URL, your page, or anything about you.
+No account. No cross-browser tracking. It only ever sends the site's **domain**, never your URL, your page, or any account information. The optional live lookup also carries a random token that exists only for the current browser session, so the lookup service can apply fair-use limits.
 
 ## Why this matters, even if you never report a bug
 
@@ -80,7 +80,7 @@ The color of the toolbar icon encodes the same thing at a glance: deeper purple 
 
 **Install from a release (no build needed):**
 
-1. Download **`disclose-extension.zip`** from the [latest release](https://github.com/disclose/chrome-extension-v2/releases/latest) and unzip it.
+1. Download **`disclose-extension-v*.zip`** from the [latest release](https://github.com/disclose/chrome-extension-v2/releases/latest) and unzip it. `SHA256SUMS` is provided beside it for integrity checking.
 2. Open `chrome://extensions` → turn on **Developer mode** (top-right).
 3. Click **Load unpacked** and select the unzipped folder.
 4. Click the puzzle-piece 🧩 in the toolbar and **pin** disclose.io so the badge stays visible.
@@ -103,19 +103,19 @@ After any change: `bun run build`, then hit **reload ↻** on the extension's ca
 ## Your privacy comes first
 
 - It only ever sends the current site's **domain** (e.g. `example.com`), never your URL, query string, or page contents.
-- Requests are **anonymous**: no cookies, no account, no identifier.
-- The directory check runs automatically; the deeper `lookup.disclose.io` query only runs when **you** click "Look this up."
-- Results are cached locally in `chrome.storage.session` and cleared when the browser restarts. No browsing-history storage.
-- `host_permissions` are limited to `directory.disclose.io` and `lookup.disclose.io`: the extension can't touch any other site.
+- Requests have no cookies, credentials, or account identity. The optional lookup request includes one random, opaque token held only in `chrome.storage.session` for that browser session, solely so the service can apply fair-use limits.
+- The directory check runs automatically through directory.disclose.io's widget API; the deeper `lookup.disclose.io` query only runs when **you** click "Look this up."
+- Results and the lookup token are session-only and are cleared when the browser restarts. No browsing-history storage.
+- `host_permissions` are limited to the directory widget API and `lookup.disclose.io`: the extension can't touch the sites you visit.
 
 Full policy: **[disclose-extension-privacy.pages.dev](https://disclose-extension-privacy.pages.dev/)**.
 
 ## How it works
 
-- On each top-frame navigation, the MV3 service worker takes the active tab's eTLD+1 and queries `directory.disclose.io/?q=<name>` for matching programs.
+- On each top-frame navigation, the MV3 service worker takes the active tab's eTLD+1 and queries directory.disclose.io's public widget JSON API (`widgets.disclosebot.io/directory/adf701.json?q=<name>`) for matching programs and program details.
 - Matches are filtered with the same hosting-domain + entity-match logic the `lookup.disclose.io` server uses, so a platform-hosted policy doesn't make every program match.
 - The maturity/verdict and icon color are derived from the matched program (`src/lib/maturity.ts`).
-- When you run a live lookup, the popup calls `POST https://lookup.disclose.io/api/lookup` for a richer answer (security.txt, security-page probe, retaliation-history overlay).
+- When you run a live lookup, the popup calls `POST https://lookup.disclose.io/api/lookup` with a session-scoped fair-use token and caches its ETag-validated result for a richer answer (security.txt, security-page probe, retaliation-history overlay).
 
 No new infrastructure: it consumes the existing disclose.io directory and lookup services.
 
@@ -134,9 +134,10 @@ flowchart LR
 bun install
 bunx playwright install chromium   # one-time: Chromium the test runner loads the extension into
 bun run build        # esbuild bundle + sharp icon rendering → dist/
+bun run test:unit    # API, presentation, and release contract tests
 bun run test         # mocked Playwright suite + axe-core a11y scan
 SMOKE=1 bun run test # also hits production directory.disclose.io as a sanity check
-bun run package      # → disclose-extension.zip for Web Store upload
+bun run package      # → artifacts/disclose-extension-vX.Y.Z.zip + SHA256SUMS
 ```
 
 <details>
@@ -147,7 +148,7 @@ src/
   background.ts   # MV3 service worker: tab listeners, debounce, dedupe
   popup/          # popup HTML, TypeScript, brand CSS (#673AB6 design tokens)
   lib/
-    directory.ts  # live directory.disclose.io poll (HTML → ProgramSnapshot)
+    directory.ts  # directory widget JSON API → ProgramSnapshot
     match.ts      # eTLD+1, hosting-domain filter, entity matching
     maturity.ts   # icon-state derivation + verdict copy
     lookup.ts     # POST lookup.disclose.io/api/lookup

@@ -11,9 +11,8 @@ import { existsSync } from 'node:fs';
 import path from 'node:path';
 import os from 'node:os';
 import {
-  searchResponseFor,
+  listResponseFor,
   detailResponseFor,
-  EMPTY_RESULTS_HTML,
 } from '../test/fixtures/directory-mock';
 import {
   happyLookupResponse,
@@ -38,14 +37,18 @@ async function fulfill(route: Route, body: string, contentType = 'text/html') {
 }
 
 async function setupRoutes(context: BrowserContext) {
-  await context.route('https://directory.disclose.io/**/*', async (route) => {
+  await context.route('https://widgets.disclosebot.io/directory/adf701*', async (route) => {
     const url = new URL(route.request().url());
-    if (url.pathname === '/' || url.pathname === '') {
-      await fulfill(route, searchResponseFor(url.searchParams.get('q') ?? ''));
+    if (url.pathname === '/directory/adf701.json') {
+      await fulfill(route, listResponseFor(url.searchParams.get('q') ?? ''), 'application/json');
       return;
     }
-    const slug = url.pathname.replace(/^\//, '').replace(/\/$/, '');
-    await fulfill(route, slug.length === 0 ? EMPTY_RESULTS_HTML : detailResponseFor(slug));
+    const detailMatch = url.pathname.match(/^\/directory\/adf701\/organization\/([^/]+)\.json$/);
+    if (!detailMatch) {
+      await route.fulfill({ status: 404, body: 'not mocked' });
+      return;
+    }
+    await fulfill(route, detailResponseFor(decodeURIComponent(detailMatch[1]!)), 'application/json');
   });
   await context.route('https://lookup.disclose.io/**/*', async (route) => {
     const url = new URL(route.request().url());

@@ -1,7 +1,4 @@
-// Live polling of directory.disclose.io.
-// Ported from ~/Projects/lookup-disclose-io/src/steps/diodb.ts (parseSearchRows,
-// fetchDirectoryProgram, matchPrograms). Kept structurally identical so re-syncs
-// are mechanical when the directory's HTML shape evolves.
+// Structured directory lookup through the disclose.io tenant's public widget API.
 
 import {
   HOSTING_SUBDOMAINS,
@@ -14,157 +11,175 @@ import {
 } from './match';
 import type { ProgramSnapshot } from '../types';
 
-const DIRECTORY_BASE_URL = 'https://directory.disclose.io';
+const DIRECTORY_API_BASE_URL = 'https://widgets.disclosebot.io/directory/adf701';
+const DIRECTORY_DISPLAY_BASE_URL = 'https://directory.disclose.io/o';
 const FETCH_TIMEOUT_MS = 8000;
 
-interface DirectorySearchRow {
+interface DirectoryPolicy {
+  safeHarbor?: string | null;
+  offersBounty?: boolean | null;
+  offersSwag?: boolean | null;
+  pointOfContact?: string | null;
+  contactUrl?: string | null;
+  policyUrl?: string | null;
+  securitytxtUrl?: string | null;
+}
+
+interface DirectoryOrganization {
+  name: string;
   slug: string;
+  safeHarbor?: string | null;
+  offersBounty?: boolean | null;
+  offersSwag?: boolean | null;
+  policyUrl?: string | null;
+  contactUrl?: string | null;
+  securityTxtUrl?: string | null;
+  maturity?: {
+    label?: string | null;
+    score?: number | null;
+  } | null;
+  policies?: DirectoryPolicy[] | null;
+}
+
+interface DirectoryListResponse {
+  organizations: DirectoryOrganization[];
+}
+
+interface DirectoryProgram extends DirectoryOrganization {
   programName: string;
-  policyUrl?: string;
-  contactValue?: string;
-  maturityLevel?: string;
-  maturityScore?: number;
-}
-
-interface DirectoryProgram extends DirectorySearchRow {
-  contactUrl?: string;
   contactEmail?: string;
-  securityTxtUrl?: string;
-  offersBounty?: boolean;
-  offersSwag?: boolean;
-  safeHarbor?: string;
 }
 
-function decodeHtmlEntities(value: string): string {
-  return value
-    .replace(/&nbsp;/gi, ' ')
-    .replace(/&amp;/gi, '&')
-    .replace(/&quot;/gi, '"')
-    .replace(/&#39;/gi, "'")
-    .replace(/&apos;/gi, "'")
-    .replace(/&lt;/gi, '<')
-    .replace(/&gt;/gi, '>')
-    .trim();
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return Boolean(value) && typeof value === 'object' && !Array.isArray(value);
 }
 
-function stripHtml(value: string): string {
-  return decodeHtmlEntities(value.replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' '));
+function stringValue(value: unknown): string | undefined {
+  return typeof value === 'string' && value.trim() ? value.trim() : undefined;
 }
 
-async function fetchText(url: string, signal?: AbortSignal): Promise<string> {
+function booleanValue(value: unknown): boolean | undefined {
+  return typeof value === 'boolean' ? value : undefined;
+}
+
+function numberValue(value: unknown): number | undefined {
+  return typeof value === 'number' && Number.isFinite(value) ? value : undefined;
+}
+
+function decodePolicy(value: unknown): DirectoryPolicy | null {
+  if (!isRecord(value)) return null;
+  return {
+    safeHarbor: stringValue(value.safeHarbor),
+    offersBounty: booleanValue(value.offersBounty),
+    offersSwag: booleanValue(value.offersSwag),
+    pointOfContact: stringValue(value.pointOfContact),
+    contactUrl: stringValue(value.contactUrl),
+    policyUrl: stringValue(value.policyUrl),
+    securitytxtUrl: stringValue(value.securitytxtUrl),
+  };
+}
+
+function decodeOrganization(value: unknown): DirectoryOrganization | null {
+  if (!isRecord(value)) return null;
+  const name = stringValue(value.name);
+  const slug = stringValue(value.slug);
+  if (!name || !slug) return null;
+  const maturity = isRecord(value.maturity)
+    ? {
+      label: stringValue(value.maturity.label),
+      score: numberValue(value.maturity.score),
+    }
+    : undefined;
+  const policies = Array.isArray(value.policies)
+    ? value.policies.map(decodePolicy).filter((policy): policy is DirectoryPolicy => policy !== null)
+    : undefined;
+  return {
+    name,
+    slug,
+    safeHarbor: stringValue(value.safeHarbor),
+    offersBounty: booleanValue(value.offersBounty),
+    offersSwag: booleanValue(value.offersSwag),
+    policyUrl: stringValue(value.policyUrl),
+    contactUrl: stringValue(value.contactUrl),
+    securityTxtUrl: stringValue(value.securityTxtUrl),
+    maturity,
+    policies,
+  };
+}
+
+function decodeListResponse(value: unknown): DirectoryListResponse {
+  if (!isRecord(value) || !Array.isArray(value.organizations)) {
+    throw new Error('directory API returned no organizations array');
+  }
+  return {
+    organizations: value.organizations
+      .map(decodeOrganization)
+      .filter((organization): organization is DirectoryOrganization => organization !== null),
+  };
+}
+
+async function fetchJson(url: string, signal?: AbortSignal): Promise<unknown> {
   const controller = new AbortController();
   const timeout = setTimeout(() => controller.abort(), FETCH_TIMEOUT_MS);
-  if (signal) signal.addEventListener('abort', () => controller.abort(), { once: true });
+  const abortFromCaller = () => controller.abort();
+  if (signal) signal.addEventListener('abort', abortFromCaller, { once: true });
   try {
     const response = await fetch(url, {
       signal: controller.signal,
       redirect: 'follow',
-      headers: {
-        'User-Agent': 'disclose-chrome-extension/0.1 (+https://github.com/disclose/chrome-extension-v2)',
-      },
+      headers: { Accept: 'application/json' },
     });
-    if (!response.ok) {
-      throw new Error(`directory fetch failed: ${response.status}`);
-    }
-    return await response.text();
+    if (!response.ok) throw new Error(`directory API fetch failed: ${response.status}`);
+    return await response.json();
   } finally {
     clearTimeout(timeout);
+    if (signal) signal.removeEventListener('abort', abortFromCaller);
   }
 }
 
-export function parseSearchRows(html: string): DirectorySearchRow[] {
-  if (html.includes('No organizations found.')) return [];
-
-  const rows: DirectorySearchRow[] = [];
-  const rowPattern = /<tr>([\s\S]*?)<\/tr>/gi;
-
-  for (const rowMatch of html.matchAll(rowPattern)) {
-    const rowHtml = rowMatch[1] ?? '';
-    if (rowHtml.includes('empty-row') || !rowHtml.includes('org-name')) continue;
-
-    const orgMatch = rowHtml.match(/<td class="org-name"[\s\S]*?<a href="\/([^"]+)" title="([^"]+)">/i);
-    if (!orgMatch) continue;
-
-    const policyMatch = rowHtml.match(/<td class="policy-col"[\s\S]*?<a href="([^"]+)"/i);
-    const contactMatch = rowHtml.match(/<td class="contact-col"[\s\S]*?<span title="([^"]+)"/i);
-    // m-badge class is now compound (e.g. "m-badge m-badge-partial"); allow extra classes.
-    const maturityMatch = rowHtml.match(/<span class="m-badge(?:[ a-z0-9_-]*)"[^>]*>([^<]+)<\/span>/i);
-    const scoreMatch = rowHtml.match(/<span style="font-weight: 500; color: #111827;">([\d.]+)<\/span>/i);
-
-    rows.push({
-      slug: orgMatch[1]!,
-      programName: decodeHtmlEntities(orgMatch[2]!),
-      policyUrl: policyMatch?.[1],
-      contactValue: contactMatch ? decodeHtmlEntities(contactMatch[1]!) : undefined,
-      maturityLevel: maturityMatch ? decodeHtmlEntities(maturityMatch[1]!) : undefined,
-      maturityScore: scoreMatch ? Number.parseFloat(scoreMatch[1]!) : undefined,
-    });
-  }
-
-  return rows;
+function apiPath(baseUrl: string, suffix = ''): string {
+  const root = baseUrl.replace(/\/$/, '').replace(/\.json$/, '');
+  return `${root}${suffix}.json`;
 }
 
-function extractDetailField(html: string, label: string): string | undefined {
-  const escaped = label.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-  const pattern = new RegExp(
-    `<div class="pol-grid-label">${escaped}<\\/div>\\s*<div class="pol-grid-value">([\\s\\S]*?)<\\/div>`,
-    'i',
-  );
-  const match = html.match(pattern);
-  return match ? stripHtml(match[1]!) : undefined;
+function listUrl(baseUrl: string, query: string): string {
+  const url = new URL(apiPath(baseUrl));
+  url.searchParams.set('q', query);
+  url.searchParams.set('per_page', '100');
+  return url.toString();
 }
 
-function extractDetailHref(html: string, label: string): string | undefined {
-  const escaped = label.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-  const pattern = new RegExp(
-    `<div class="pol-grid-label">${escaped}<\\/div>\\s*<div class="pol-grid-value">[\\s\\S]*?<a href="([^"]+)"`,
-    'i',
-  );
-  return html.match(pattern)?.[1];
+function policyFor(program: DirectoryOrganization): DirectoryPolicy | undefined {
+  return program.policies?.find((policy) =>
+    Boolean(policy.policyUrl || policy.contactUrl || policy.pointOfContact || policy.securitytxtUrl),
+  ) ?? program.policies?.[0];
 }
 
-function extractBonusFlag(html: string, label: string): boolean | undefined {
-  const escaped = label.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-  const pattern = new RegExp(`<span class="(met|unmet)">${escaped}<\\/span>`, 'i');
-  const match = html.match(pattern);
-  if (!match) return undefined;
-  return match[1] === 'met';
-}
-
-export function parseProgramDetail(html: string, row: DirectorySearchRow): DirectoryProgram {
-  const contact = extractDetailField(html, 'Contact') ?? row.contactValue;
-  const policyUrl = extractDetailHref(html, 'Policy URL') ?? row.policyUrl;
-  const securityTxtUrl = extractDetailHref(html, 'security.txt');
-  const safeHarbor = extractDetailField(html, 'Safe Harbor');
-
+function toProgram(organization: DirectoryOrganization): DirectoryProgram {
+  const policy = policyFor(organization);
+  const contact = organization.contactUrl ?? policy?.contactUrl ?? policy?.pointOfContact ?? undefined;
   return {
-    ...row,
-    policyUrl,
+    ...organization,
+    programName: organization.name,
+    policyUrl: organization.policyUrl ?? policy?.policyUrl,
     contactUrl: isUrl(contact) ? contact : undefined,
     contactEmail: isEmail(contact) ? contact : undefined,
-    securityTxtUrl,
-    offersBounty: extractBonusFlag(html, 'Offers Bounty'),
-    offersSwag: extractBonusFlag(html, 'Offers Swag'),
-    safeHarbor,
+    securityTxtUrl: organization.securityTxtUrl ?? policy?.securitytxtUrl,
+    safeHarbor: organization.safeHarbor || policy?.safeHarbor,
+    offersBounty: organization.offersBounty ?? policy?.offersBounty,
+    offersSwag: organization.offersSwag ?? policy?.offersSwag,
   };
 }
 
 function rankCandidates(domain: string, programs: DirectoryProgram[]): DirectoryProgram[] {
   const filtered = programs.filter((program) => {
-    const name = program.programName.toLowerCase();
-
-    // Honor the scoped-name pattern "Org (scope.com)" — only match if the
-    // parenthetical asset matches the input domain, ignoring all other signals.
     const scopeMatch = program.programName.match(/\(([a-z0-9][a-z0-9.-]*\.[a-z]{2,})\)\s*$/i);
-    if (scopeMatch) {
-      return domainOwnsHost(domain, scopeMatch[1]!.toLowerCase());
-    }
+    if (scopeMatch) return domainOwnsHost(domain, scopeMatch[1]!.toLowerCase());
 
     const policyHost = extractHostFromUrl(program.policyUrl ?? '');
     const contactHost = extractHostFromUrl(program.contactUrl ?? '');
     const securityTxtHost = extractHostFromUrl(program.securityTxtUrl ?? '');
     const contactEmailDomain = extractEmailDomain(program.contactEmail);
-
     const policyIsHosted = policyHost ? HOSTING_SUBDOMAINS.has(policyHost) : false;
     const contactIsHosted = contactHost ? HOSTING_SUBDOMAINS.has(contactHost) : false;
 
@@ -172,28 +187,18 @@ function rankCandidates(domain: string, programs: DirectoryProgram[]): Directory
     const domainInContact = !contactIsHosted && domainOwnsHost(domain, contactHost);
     const domainInSecurityTxt = domainOwnsHost(domain, securityTxtHost);
     const domainInEmail = domainOwnsHost(domain, contactEmailDomain);
-    const nameMatch = domainMatchesOrganization(domain, name);
-
-    return (
-      domainInSecurityTxt ||
-      domainInEmail ||
-      (nameMatch && (domainInPolicy || domainInContact))
-    );
+    const nameMatch = domainMatchesOrganization(domain, program.programName.toLowerCase());
+    return domainInSecurityTxt || domainInEmail || (nameMatch && (domainInPolicy || domainInContact));
   });
 
   filtered.sort((a, b) => {
-    const aScore =
-      Number(domainOwnsHost(domain, extractHostFromUrl(a.securityTxtUrl ?? ''))) * 3 +
-      Number(domainOwnsHost(domain, extractEmailDomain(a.contactEmail))) * 2 +
-      Number(domainMatchesOrganization(domain, a.programName.toLowerCase()));
-    const bScore =
-      Number(domainOwnsHost(domain, extractHostFromUrl(b.securityTxtUrl ?? ''))) * 3 +
-      Number(domainOwnsHost(domain, extractEmailDomain(b.contactEmail))) * 2 +
-      Number(domainMatchesOrganization(domain, b.programName.toLowerCase()));
-    if (bScore !== aScore) return bScore - aScore;
-    return a.programName.localeCompare(b.programName);
+    const score = (program: DirectoryProgram): number =>
+      Number(domainOwnsHost(domain, extractHostFromUrl(program.securityTxtUrl ?? ''))) * 3 +
+      Number(domainOwnsHost(domain, extractEmailDomain(program.contactEmail))) * 2 +
+      Number(domainMatchesOrganization(domain, program.programName.toLowerCase()));
+    const delta = score(b) - score(a);
+    return delta || a.programName.localeCompare(b.programName);
   });
-
   return filtered;
 }
 
@@ -203,13 +208,8 @@ export interface DirectoryLookupResult {
   candidatesConsidered: number;
 }
 
-// Mirror buildSearchQueries from lookup-disclose-io/src/steps/diodb.ts:110-122.
-// The directory's server-side search splits FQDNs into name tokens — searching
-// for "1password.com" can return zero rows while "1password" returns the
-// agilebits entry. So we try the full eTLD+1 plus the base name.
 function buildSearchQueries(domain: string): string[] {
-  const queries = new Set<string>();
-  queries.add(domain);
+  const queries = new Set([domain]);
   const base = domain.split('.')[0]?.replace(/[^a-z0-9]+/gi, ' ').trim();
   if (base && base.length >= 3) queries.add(base);
   return [...queries].filter(Boolean);
@@ -219,58 +219,54 @@ export async function lookupDirectory(
   domain: string,
   options: { signal?: AbortSignal; baseUrl?: string } = {},
 ): Promise<DirectoryLookupResult> {
-  const baseUrl = options.baseUrl ?? DIRECTORY_BASE_URL;
-
-  // Run all search queries concurrently — sequential awaits here meant a slow-but-alive
-  // response to query N delayed every later query by its own full FETCH_TIMEOUT_MS, so a
-  // 2-query domain could take up to 2x FETCH_TIMEOUT_MS in the worst case. Promise.allSettled
-  // keeps one query's timeout/failure from blocking the others, and results are folded back in
-  // the original query order (not resolution order) so duplicate-slug precedence is unchanged.
-  const queries = buildSearchQueries(domain);
-  const settled = await Promise.allSettled(
-    queries.map((query) => fetchText(`${baseUrl}/?q=${encodeURIComponent(query)}`, options.signal)),
+  const baseUrl = options.baseUrl ?? DIRECTORY_API_BASE_URL;
+  const searchResponses = await Promise.allSettled(
+    buildSearchQueries(domain).map(async (query) => decodeListResponse(
+      await fetchJson(listUrl(baseUrl, query), options.signal),
+    )),
   );
-
-  const candidates = new Map<string, DirectorySearchRow>();
-  for (const result of settled) {
-    if (result.status !== 'fulfilled') continue; // ignore one query failure; others may still match
-    for (const row of parseSearchRows(result.value).slice(0, 8)) {
-      if (!candidates.has(row.slug)) candidates.set(row.slug, row);
+  const candidates = new Map<string, DirectoryOrganization>();
+  for (const result of searchResponses) {
+    if (result.status !== 'fulfilled') continue;
+    for (const organization of result.value.organizations.slice(0, 8)) {
+      if (!candidates.has(organization.slug)) candidates.set(organization.slug, organization);
     }
   }
   if (candidates.size === 0) return { matched: false, candidatesConsidered: 0 };
 
-  const programs: DirectoryProgram[] = await Promise.all(
-    [...candidates.values()].map(async (row) => {
+  const programs = await Promise.all(
+    [...candidates.values()].map(async (candidate) => {
       try {
-        const detailHtml = await fetchText(`${baseUrl}/${row.slug}`, options.signal);
-        return parseProgramDetail(detailHtml, row);
+        const detail = decodeOrganization(await fetchJson(
+          apiPath(baseUrl, `/organization/${encodeURIComponent(candidate.slug)}`),
+          options.signal,
+        ));
+        return toProgram(detail ?? candidate);
       } catch {
-        return { ...row };
+        return toProgram(candidate);
       }
     }),
   );
-
   const ranked = rankCandidates(domain, programs);
-  if (ranked.length === 0) {
-    return { matched: false, candidatesConsidered: programs.length };
-  }
+  if (ranked.length === 0) return { matched: false, candidatesConsidered: programs.length };
 
   const best = ranked[0]!;
-  const snapshot: ProgramSnapshot = {
-    slug: best.slug,
-    programName: best.programName,
-    policyUrl: best.policyUrl,
-    contactUrl: best.contactUrl,
-    contactEmail: best.contactEmail,
-    securityTxtUrl: best.securityTxtUrl,
-    safeHarbor: best.safeHarbor,
-    offersBounty: best.offersBounty,
-    offersSwag: best.offersSwag,
-    maturityLevel: best.maturityLevel,
-    maturityScore: best.maturityScore,
-    directoryUrl: `${baseUrl}/${best.slug}`,
+  return {
+    matched: true,
+    candidatesConsidered: programs.length,
+    program: {
+      slug: best.slug,
+      programName: best.programName,
+      policyUrl: best.policyUrl ?? undefined,
+      contactUrl: best.contactUrl ?? undefined,
+      contactEmail: best.contactEmail ?? undefined,
+      securityTxtUrl: best.securityTxtUrl ?? undefined,
+      safeHarbor: best.safeHarbor ?? undefined,
+      offersBounty: best.offersBounty ?? undefined,
+      offersSwag: best.offersSwag ?? undefined,
+      maturityLevel: best.maturity?.label ?? undefined,
+      maturityScore: best.maturity?.score ?? undefined,
+      directoryUrl: `${DIRECTORY_DISPLAY_BASE_URL}/${best.slug}`,
+    },
   };
-
-  return { matched: true, program: snapshot, candidatesConsidered: programs.length };
 }
