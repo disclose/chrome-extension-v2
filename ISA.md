@@ -4,20 +4,20 @@ slug: 20260811-071845_lookup-api-reconciliation
 project: chrome-extension-v2
 effort: E4
 effort_source: auto
-phase: complete
-progress: 30/30
+phase: verify
+progress: 34/36
 mode: iterate
 started: 2026-08-11T07:18:45Z
-updated: 2026-08-11T17:57:08Z
-iteration: 3
-principal_stated_goal: "can you please create a demo video of a lookup using the tool, and upload it to repo with a reference in the readme"
+updated: 2026-08-11T18:19:23Z
+iteration: 4
+principal_stated_goal: "ok, please redo this with the disclose.io logo in the corner, and focus on the directory/maturity side of things more than the researcher side"
 principal_stated_goal_source: explicit-revision
 principal_stated_goal_signal: 4
 principal_stated_goal_locked: 2026-08-11T17:30:05Z
 context_sufficient: true
 interview_invoked: false
 current_state: "Version 0.2.0 is released, but the README's existing walkthrough predates the route-aware live lookup and does not demonstrate the current owner-versus-coordinator result."
-ideal_state: "A concise, polished video in the repository shows a real current lookup from directory status through grouped live results, and the README makes the video obvious and easy to play."
+ideal_state: "A concise, polished video in the repository leads with disclosure-directory membership and maturity signals, keeps the official disclose.io logo visible in the corner, and treats the deeper live lookup as supporting context."
 capabilities_invoked:
   - ISA
   - Interceptor
@@ -64,7 +64,7 @@ requires: directory-disclose-io — `widgets.disclosebot.io/directory/adf701(.js
 
 ## Goal
 
-Version 0.2.0 is already released and verified. This iteration adds a compact, muted-first demo that shows a current Cloudflare directory result, the live lookup action, first-party owner routes, and clearly separated coordinator fallbacks; the repository README must present a poster linked to the MP4 plus a direct playback link.
+Version 0.2.0 is already released and verified. This iteration replaces the demo with a compact, muted-first cut whose dominant story is Cloudflare's directory membership, maturity score, and four disclosure signals. The official disclose.io logo remains visible in the corner, the deeper live lookup is a brief supporting beat, and the repository README continues to present a poster linked to the MP4 plus a direct playback link.
 
 ## Criteria
 
@@ -101,6 +101,12 @@ Version 0.2.0 is already released and verified. This iteration adds a compact, m
 - [x] ISC-28: Demo source frames come from the current extension using both live APIs.
 - [x] ISC-29: Frame scrub contains no blank, clipped, or unreadable scene.
 - [x] ISC-30: GitHub contains the video, poster, README reference, and regeneration source.
+- [x] ISC-31: Antecedent: the official disclose.io handshake-and-wordmark logo stays visible in a corner throughout the video.
+- [x] ISC-32: Directory membership, maturity score, and disclosure signals occupy at least 70% of the story frames.
+- [x] ISC-33: The intro, main headings, and outro frame the extension around directory and maturity rather than researcher reporting.
+- [x] ISC-34: Anti: coordinator-fallback explanation is not a standalone scene in the revised cut.
+- [ ] ISC-35: The README poster and supporting copy describe the directory-and-maturity-first narrative.
+- [ ] ISC-36: The replacement media and source are pushed to the existing demo PR without changing the stable playback paths.
 
 ## Test Strategy
 
@@ -136,6 +142,12 @@ Version 0.2.0 is already released and verified. This iteration adds a compact, m
 | ISC-28 | literal | browser-live | directory status and live route-aware lookup source captures | both current live API flows rendered | Interceptor + Apple Events DOM read |
 | ISC-29 | derived: polished visual output | frame-scrub | sampled frames across full duration | zero blank, clipped, or unreadable scene | ffmpeg contact sheet + viewed image |
 | ISC-30 | literal | git-diff | intended demo source and documentation artifacts | scoped video, poster, README, and source tree in pushed branch/PR | git diff + GitHub PR |
+| ISC-31 | literal | frame-scrub | official logo position across sampled frames | visible in top-left corner in every non-black frame | ffmpeg contact sheet + viewed image |
+| ISC-32 | literal | timeline-inspection | directory/maturity story-frame duration divided by total duration | at least 70% | Remotion sequence boundaries + source read |
+| ISC-33 | literal | copy-audit | intro, scene headings, and outro | directory/maturity framing; no researcher-led title | rg + source read |
+| ISC-34 | derived: narrative focus | timeline-inspection | standalone coordinator/fallback scene | absent | rg + source read |
+| ISC-35 | literal | markdown-browser | poster and demo description | directory/maturity wording visible and poster rendered | Interceptor + README read |
+| ISC-36 | literal | remote-artifact | stable paths on existing branch/PR | remote bytes match local and PR checks pass | git/GitHub APIs + SHA-256 |
 
 ## Features
 
@@ -147,7 +159,7 @@ Version 0.2.0 is already released and verified. This iteration adds a compact, m
 | BrowserProof | Build and validate a real unpacked extension against both service APIs. | ISC-12 | RoutePresentation, DirectoryAPI | false |
 | ReleasePackage | Synchronize version metadata and emit a validated downloadable archive plus checksum. | ISC-13, ISC-14, ISC-15, ISC-16 | APIContract, RoutePresentation, DirectoryAPI | false |
 | RepositoryRelease | Merge, tag, publish, download, and browser-verify the public release. | ISC-17, ISC-18, ISC-19, ISC-20 | ReleasePackage | false |
-| LookupDemo | Capture the current live workflow, animate it into a concise video, document playback, and publish the scoped repository change. | ISC-21, ISC-22, ISC-23, ISC-24, ISC-25, ISC-26, ISC-27, ISC-28, ISC-29, ISC-30 | RepositoryRelease | false |
+| LookupDemo | Capture the current live workflow, animate a directory-and-maturity-first video with persistent official branding, document playback, and publish the scoped repository change. | ISC-21, ISC-22, ISC-23, ISC-24, ISC-25, ISC-26, ISC-27, ISC-28, ISC-29, ISC-30, ISC-31, ISC-32, ISC-33, ISC-34, ISC-35, ISC-36 | RepositoryRelease | false |
 
 ## Decisions
 
@@ -166,6 +178,8 @@ Version 0.2.0 is already released and verified. This iteration adds a compact, m
 - 2026-08-11 17:30: Use a 16:9, muted-first Remotion composition built from isolated live-Chrome captures; explanatory on-screen copy makes narration unnecessary and keeps the repository asset small.
 - 2026-08-11 17:30: Keep the older multi-state walkthrough as historical breadth; add a distinct focused lookup demo rather than silently replacing it.
 - 2026-08-11 17:47: Post-process the Remotion source encode to H.264/yuv420p with no audio and fast-start metadata; this removes an empty AAC track, stays broadly playable, and leaves a comfortable repository-size margin.
+- 2026-08-11 18:13: refined: The explicit revision replaces the researcher-route emphasis with a directory-and-maturity-first narrative, adds ISC-31 through ISC-36 without renumbering prior criteria, and keeps the existing PR and stable media paths.
+- 2026-08-11 18:13: Use the official public `disclose.io/uploads/logo-disclose-type.svg` lockup in a persistent top-left brand card; the prior extension-icon treatment is not the disclose.io wordmark.
 
 ## Changelog
 
@@ -199,6 +213,11 @@ Version 0.2.0 is already released and verified. This iteration adds a compact, m
   learned: the README needs a focused live-lookup narrative in addition to broad historical state coverage
   criterion now: ISC-21 through ISC-30 require a current, privacy-safe, compact video and an obvious README playback path
 
+- 2026-08-11 | conjectured: a first-party-route and fallback-led story best represented the extension's value
+  refuted by: the principal explicitly asked for the directory and maturity side to dominate and for the disclose.io logo to stay in the corner
+  learned: the deeper lookup is supporting detail; the distinctive product story is the at-a-glance maturity signal
+  criterion now: ISC-31 through ISC-36 require persistent official branding, at least 70% directory/maturity story frames, and no standalone fallback scene
+
 ## Verification
 
 - `bun test test/lookup-contract.test.ts test/directory-api.test.ts`: 10 pass, 0 fail, 29 assertions.
@@ -221,3 +240,9 @@ Version 0.2.0 is already released and verified. This iteration adds a compact, m
 - ISC-25 and ISC-26: `README.md` contains a poster image and separate `▶ Watch the 19-second live lookup demo (MP4)` label, both linked with GitHub's `?raw=1` playback path; both referenced files exist.
 - Demo regression check: `bun run verify` passes 12 tests (36 assertions), strict TypeScript, and the production extension build after the documentation/media addition.
 - ISC-30: branch `codex/lookup-demo-video` and draft PR #25 contain the video, 1280×720 poster, README playback links, and locked Remotion regeneration source. GitHub rendered the poster at its natural dimensions; the independently downloaded remote MP4 was 2,625,960 bytes and matched local SHA-256 `d1e75fb52720e75e1b008d75aa700b403302458be70ab8295495c7792f343b75` exactly.
+- ISC-31: frame-scrub — the viewed 13-frame contact sheet shows the official handshake-and-wordmark lockup in the top-left white brand card across intro, directory, maturity, optional lookup, and outro scenes.
+- ISC-32: timeline-inspection — intro 75 + directory 165 + maturity signals 165 + maturity outro 75 = 480 of 570 frames, or 84.2%, devoted to directory/maturity framing.
+- ISC-33: copy-audit — composition headings read `THE DISCLOSE.IO DIRECTORY`, `DIRECTORY MEMBERSHIP`, `DISCLOSURE MATURITY`, and `DIRECTORY.DISCLOSE.IO`; neither `researcher` nor the prior reporting-led titles occur in the composition.
+- ISC-34: timeline-inspection — `LookupDemo.tsx` contains no fallback scene or fallback heading; the only deeper-routing material is the 90-frame `OPTIONAL DEEPER LOOKUP` support scene.
+- Replacement media check: `ffprobe` reports one H.264/yuv420p 1280×720 stream at 30fps, 19.000 seconds, 2,013,929 bytes, with no audio stream; full `ffmpeg` decode exits 0. MP4 SHA-256: `9d00afcd775d08ba77e44f3859c0c1f524b401b6910481722cd71af610d787de`.
+- Replacement regression check: `bun run verify` passes 12 tests (36 assertions), strict TypeScript, and the production extension build.

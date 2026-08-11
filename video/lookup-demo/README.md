@@ -1,9 +1,11 @@
-# Live lookup demo source
+# Directory maturity demo source
 
-This Remotion composition generates the focused lookup video embedded in the
-repository README. Its capture assets came from the current unpacked extension
-running against the live `directory.disclose.io` and `lookup.disclose.io` APIs
-in a disposable Chrome for Testing profile.
+This Remotion composition generates the directory-and-maturity-first video
+embedded in the repository README. Its capture assets came from the current
+unpacked extension running against the live `directory.disclose.io` and
+`lookup.disclose.io` APIs in a disposable Chrome for Testing profile. The
+official disclose.io handshake-and-wordmark asset is included as
+`public/disclose-logo.svg` and remains visible in the top-left corner.
 
 ## Render
 

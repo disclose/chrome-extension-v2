@@ -1,19 +1,20 @@
 # Extension demos
 
-## Live API lookup
+## Directory and maturity lookup
 
 The current focused demo uses captures from the built v0.2.0 extension running
 against the live `directory.disclose.io` and `lookup.disclose.io` APIs in a
-disposable Chrome for Testing profile.
+disposable Chrome for Testing profile. Its main story is the directory record:
+membership, maturity score, policy, safe harbor, bounty, and security.txt.
 
 | File | Notes |
 |------|-------|
 | `lookup-demo.mp4` | 1280×720, 19s, H.264/yuv420p, muted — linked from the top-level README |
-| `lookup-demo-poster.png` | README poster from the first-party live-result scene |
+| `lookup-demo-poster.png` | README poster from the disclosure-maturity score scene |
 
-It shows the directory maturity signal, the full-lookup action, first-party
-owner routes, and clearly labeled CNA and CERT/CC coordinator fallbacks. The
-reproducible Remotion composition and verified source captures live in
+It keeps the official disclose.io logo in the corner, gives directory maturity
+most of the runtime, and treats the optional first-party route lookup as a short
+supporting beat. The reproducible Remotion composition and verified source captures live in
 [`video/lookup-demo`](../../video/lookup-demo/).
 
 ## Historical popup walkthrough
