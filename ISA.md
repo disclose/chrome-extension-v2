@@ -4,11 +4,11 @@ slug: 20260811-071845_lookup-api-reconciliation
 project: chrome-extension-v2
 effort: E4
 effort_source: auto
-phase: verify
-progress: 34/36
+phase: complete
+progress: 36/36
 mode: iterate
 started: 2026-08-11T07:18:45Z
-updated: 2026-08-11T18:19:23Z
+updated: 2026-08-11T18:23:26Z
 iteration: 4
 principal_stated_goal: "ok, please redo this with the disclose.io logo in the corner, and focus on the directory/maturity side of things more than the researcher side"
 principal_stated_goal_source: explicit-revision
@@ -105,8 +105,8 @@ Version 0.2.0 is already released and verified. This iteration replaces the demo
 - [x] ISC-32: Directory membership, maturity score, and disclosure signals occupy at least 70% of the story frames.
 - [x] ISC-33: The intro, main headings, and outro frame the extension around directory and maturity rather than researcher reporting.
 - [x] ISC-34: Anti: coordinator-fallback explanation is not a standalone scene in the revised cut.
-- [ ] ISC-35: The README poster and supporting copy describe the directory-and-maturity-first narrative.
-- [ ] ISC-36: The replacement media and source are pushed to the existing demo PR without changing the stable playback paths.
+- [x] ISC-35: The README poster and supporting copy describe the directory-and-maturity-first narrative.
+- [x] ISC-36: The replacement media and source are pushed to the existing demo PR without changing the stable playback paths.
 
 ## Test Strategy
 
@@ -246,3 +246,6 @@ Version 0.2.0 is already released and verified. This iteration replaces the demo
 - ISC-34: timeline-inspection — `LookupDemo.tsx` contains no fallback scene or fallback heading; the only deeper-routing material is the 90-frame `OPTIONAL DEEPER LOOKUP` support scene.
 - Replacement media check: `ffprobe` reports one H.264/yuv420p 1280×720 stream at 30fps, 19.000 seconds, 2,013,929 bytes, with no audio stream; full `ffmpeg` decode exits 0. MP4 SHA-256: `9d00afcd775d08ba77e44f3859c0c1f524b401b6910481722cd71af610d787de`.
 - Replacement regression check: `bun run verify` passes 12 tests (36 assertions), strict TypeScript, and the production extension build.
+- ISC-35: Interceptor opened the pushed branch README in isolated Chrome and read `See disclosure maturity at a glance` plus `▶ Watch the 19-second directory and maturity demo (MP4)`. A pixel-true screenshot was captured and viewed: GitHub renders the 1280×720 poster with the official disclose.io lockup, maturity score 47, and all four disclosure signals legibly.
+- ISC-36: commit `76f1a023a3f465068149a2c` is on `origin/codex/lookup-demo-video` and draft PR #25. The independently downloaded remote MP4 is 2,013,929 bytes and matches local SHA-256 `9d00afcd775d08ba77e44f3859c0c1f524b401b6910481722cd71af610d787de`; GitHub reports `Typecheck, build & test`, `Analyze`, and `CodeQL` completed successfully.
+- Browser cleanup: the installed group-close action was unavailable (`unknown action type`), so the two exact verification tab IDs were closed individually; the post-close tab list no longer contained either GitHub URL.
