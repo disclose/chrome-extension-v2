@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "disclose.io",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "description": "See if a website welcomes security researchers — VDP, safe harbor, and disclosure maturity at a glance. Powered by directory.disclose.io.",
   "minimum_chrome_version": "116",
   "action": {

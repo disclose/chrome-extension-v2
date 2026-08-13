@@ -51,7 +51,10 @@ export async function runLookup(
     options.signal.addEventListener('abort', abortFromCaller, { once: true });
   }
   try {
-    const headers: Record<string, string> = { 'Content-Type': 'application/json' };
+    const headers: Record<string, string> = {
+      'Content-Type': 'application/json',
+      'X-Lookup-Client': 'chrome-extension/0.2.1',
+    };
     if (options.lookupSessionId) headers['X-Lookup-Session'] = options.lookupSessionId;
     if (options.etag) headers['If-None-Match'] = options.etag;
     const response = await fetch(`${baseUrl}/api/lookup`, {

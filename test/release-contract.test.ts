@@ -8,7 +8,7 @@ describe('release contract', () => {
   test('keeps package and Chrome manifest versions synchronized', async () => {
     const packageJson = JSON.parse(await readFile(path.join(ROOT, 'package.json'), 'utf8'));
     const manifest = JSON.parse(await readFile(path.join(ROOT, 'manifest.json'), 'utf8'));
-    expect(packageJson.version).toBe('0.2.0');
+    expect(packageJson.version).toBe('0.2.1');
     expect(manifest.version).toBe(packageJson.version);
     expect(manifest.manifest_version).toBe(3);
   });
