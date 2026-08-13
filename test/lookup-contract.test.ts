@@ -71,6 +71,8 @@ describe('lookup.disclose.io API contract', () => {
 
     expect(request?.url).toBe('https://lookup.disclose.io/api/lookup');
     expect(request?.headers.get('x-lookup-session')).toBe('s'.repeat(20));
+    expect(request?.headers.get('x-lookup-client')).toBe('chrome-extension/0.2.1');
+    expect(request?.headers.get('authorization')).toBeNull();
     expect(request?.headers.get('if-none-match')).toBeNull();
     expect(await request?.json()).toEqual({ input: 'example.test' });
     expect(result.report).toEqual(ownerRouteReport);
