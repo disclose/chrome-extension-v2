@@ -1,7 +1,9 @@
 import type { LookupReport } from '../types';
 
 const LOOKUP_BASE_URL = 'https://lookup.disclose.io';
-const LOOKUP_TIMEOUT_MS = 30000;
+// A first-time (uncached) lookup for a large organization takes 30 to 40s
+// server-side, so the client deadline must sit comfortably above that.
+export const LOOKUP_TIMEOUT_MS = 60000;
 
 export interface LookupRequestOptions {
   signal?: AbortSignal;
@@ -45,7 +47,11 @@ export async function runLookup(
 ): Promise<LookupFetchResult> {
   const baseUrl = options.baseUrl ?? LOOKUP_BASE_URL;
   const controller = new AbortController();
-  const timeout = setTimeout(() => controller.abort(), LOOKUP_TIMEOUT_MS);
+  let timedOut = false;
+  const timeout = setTimeout(() => {
+    timedOut = true;
+    controller.abort();
+  }, LOOKUP_TIMEOUT_MS);
   const abortFromCaller = () => controller.abort();
   if (options.signal) {
     options.signal.addEventListener('abort', abortFromCaller, { once: true });
@@ -53,7 +59,7 @@ export async function runLookup(
   try {
     const headers: Record<string, string> = {
       'Content-Type': 'application/json',
-      'X-Lookup-Client': 'chrome-extension/0.2.1',
+      'X-Lookup-Client': 'chrome-extension/0.2.2',
     };
     if (options.lookupSessionId) headers['X-Lookup-Session'] = options.lookupSessionId;
     if (options.etag) headers['If-None-Match'] = options.etag;
@@ -84,6 +90,13 @@ export async function runLookup(
       cacheStatus: response.headers.get('x-lookup-cache') ?? undefined,
       notModified: false,
     };
+  } catch (err) {
+    if (timedOut) {
+      throw new Error(
+        `Lookup timed out after ${LOOKUP_TIMEOUT_MS / 1000}s. First-time lookups for large organizations can be slow; try again.`,
+      );
+    }
+    throw err;
   } finally {
     clearTimeout(timeout);
     if (options.signal) options.signal.removeEventListener('abort', abortFromCaller);
