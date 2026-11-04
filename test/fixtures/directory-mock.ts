@@ -1,4 +1,4 @@
-// Canned responses from directory.disclose.io's public widget JSON API.
+// Canned JSON:API responses from api.disclosebot.io's public directory API.
 // Keep these aligned with the normalized contract in src/lib/directory.ts.
 
 interface FixtureProgram {
@@ -53,36 +53,51 @@ const PROGRAMS: Record<string, FixtureProgram> = {
 
 function organization(program: FixtureProgram) {
   return {
-    name: program.programName,
-    slug: program.slug,
-    safeHarbor: program.safeHarbor,
-    offersBounty: program.offersBounty,
-    offersSwag: program.offersSwag,
-    maturity: { label: program.maturityLevel, score: program.maturityScore },
-    policies: [{
-      policyUrl: program.policyUrl,
-      pointOfContact: program.contactValue,
-      securitytxtUrl: program.securityTxtUrl,
-      safeHarbor: program.safeHarbor,
-      offersBounty: program.offersBounty,
-      offersSwag: program.offersSwag,
-    }],
+    id: program.slug,
+    type: 'directory_organization',
+    attributes: {
+      name: program.programName,
+      slug: program.slug,
+      safe_harbor: program.safeHarbor,
+      offers_bounty: program.offersBounty,
+      offers_swag: program.offersSwag,
+      maturity_level: program.maturityLevel === 'Level 5' ? 5 : program.maturityLevel === 'Partial' ? 3 : 2,
+      maturity_label: program.maturityLevel,
+      maturity_score: program.maturityScore,
+      policy_url: program.policyUrl,
+      security_txt_url: program.securityTxtUrl,
+      contact_url: program.contactValue,
+    },
+    relationships: { policies: { data: [{ id: `policy-${program.slug}`, type: 'policy_summary' }] } },
+  };
+}
+
+function policy(program: FixtureProgram) {
+  return {
+    id: `policy-${program.slug}`,
+    type: 'policy_summary',
+    attributes: {
+      policy_url: program.policyUrl,
+      point_of_contact: program.contactValue,
+      securitytxt_url: program.securityTxtUrl,
+      safe_harbor: program.safeHarbor,
+      offers_bounty: program.offersBounty,
+      offers_swag: program.offersSwag,
+    },
   };
 }
 
 export function listResponseFor(query: string): string {
   const program = PROGRAMS[query.toLowerCase()];
-  return JSON.stringify({ organizations: program ? [organization(program)] : [] });
+  return JSON.stringify({ data: program ? [organization(program)] : [], included: program ? [policy(program)] : [] });
 }
 
 export function detailResponseFor(slug: string): string {
   const program = Object.values(PROGRAMS).find((candidate) => candidate.slug === slug);
   if (!program) return JSON.stringify({ error: 'not found' });
   return JSON.stringify({
-    ...organization(program),
-    policyUrl: program.policyUrl,
-    contactUrl: program.contactValue,
-    securityTxtUrl: program.securityTxtUrl,
+    data: organization(program),
+    included: [policy(program)],
   });
 }
 

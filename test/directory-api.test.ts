@@ -6,40 +6,76 @@ import { lookupDirectory } from '../src/lib/directory';
 const originalFetch = globalThis.fetch;
 
 const listOrganization = {
-  name: 'Example',
-  slug: 'example-123abc',
-  safeHarbor: 'full',
-  offersBounty: true,
-  maturity: { label: 'Full', score: 86.67 },
-  policies: [{
-    policyUrl: 'https://example.test/security',
-    pointOfContact: 'security@example.test',
-    securitytxtUrl: 'https://example.test/.well-known/security.txt',
-    safeHarbor: 'full',
-    offersBounty: true,
-  }],
+  id: 'org-example',
+  type: 'directory_organization',
+  attributes: {
+    name: 'Example',
+    slug: 'example-123abc',
+    safe_harbor: 'full',
+    offers_bounty: true,
+    maturity_label: 'Full',
+    maturity_level: 4,
+    maturity_score: 86.67,
+  },
+  relationships: { policies: { data: [{ id: 'policy-example', type: 'policy_summary' }] } },
 };
+const included = [{
+  id: 'policy-example',
+  type: 'policy_summary',
+  attributes: {
+    policy_url: 'https://example.test/security',
+    point_of_contact: 'security@example.test',
+    securitytxt_url: 'https://example.test/.well-known/security.txt',
+    safe_harbor: 'full',
+    offers_bounty: true,
+  },
+}];
 
 afterEach(() => {
   globalThis.fetch = originalFetch;
 });
 
-describe('directory.disclose.io widget API', () => {
+describe('disclose.io public directory JSON:API', () => {
+  test('resolves production policy relationships while excluding unrelated security.txt hosts', async () => {
+    // Public response captured 2026-11-04 from the current organization endpoint.
+    const fixture = JSON.parse(await readFile(path.join(import.meta.dir, 'fixtures/directory-google-jsonapi.json'), 'utf8'));
+    globalThis.fetch = (async (input) => Response.json({
+      ...fixture,
+      data: new URL(String(input)).pathname.endsWith('/organizations') ? [fixture.data] : fixture.data,
+      included: [...fixture.included].reverse(),
+    })) as typeof fetch;
+    const program = (await lookupDirectory('google.com')).program;
+    expect(program).toMatchObject({
+      programName: 'Google',
+      policyUrl: 'https://g.co/vrp',
+      contactEmail: 'security@google.com',
+      safeHarbor: 'none',
+      offersBounty: true,
+      maturityRank: 2,
+      maturityLevel: 'Basic',
+      maturityScore: 53.33,
+    });
+    // The source record incorrectly points Google's security.txt at 2cool2.be.
+    // Keep legitimate off-domain program links, but never advertise that file
+    // as Google's own security.txt.
+    expect(program?.securityTxtUrl).toBeUndefined();
+  });
+
   test('maps the disclose.io tenant list and detail payloads into a program snapshot', async () => {
     const requests: URL[] = [];
     globalThis.fetch = (async (input) => {
       const url = new URL(String(input));
       requests.push(url);
-      if (url.pathname.endsWith('/organization/example-123abc.json')) {
+      if (url.pathname.endsWith('/organizations/example-123abc')) {
         return Response.json({
-          ...listOrganization,
-          policyUrl: 'https://example.test/security',
-          securityTxtUrl: 'https://example.test/.well-known/security.txt',
-          contactUrl: 'security@example.test',
-          offersSwag: false,
+          data: {
+            ...listOrganization,
+            attributes: { ...listOrganization.attributes, offers_swag: false },
+          },
+          included,
         });
       }
-      return Response.json({ organizations: [listOrganization] });
+      return Response.json({ data: [listOrganization], included });
     }) as typeof fetch;
 
     const result = await lookupDirectory('example.test');
@@ -56,43 +92,73 @@ describe('directory.disclose.io widget API', () => {
         safeHarbor: 'full',
         offersBounty: true,
         maturityLevel: 'Full',
+        maturityRank: 4,
         maturityScore: 86.67,
         directoryUrl: 'https://directory.disclose.io/o/example-123abc',
       },
     });
     expect(requests).toEqual(expect.arrayContaining([
       expect.objectContaining({
-        hostname: 'widgets.disclosebot.io',
-        pathname: '/directory/adf701.json',
+        hostname: 'api.disclosebot.io',
+        pathname: '/v1/p/directories/adf701/organizations',
       }),
       expect.objectContaining({
-        hostname: 'widgets.disclosebot.io',
-        pathname: '/directory/adf701/organization/example-123abc.json',
+        hostname: 'api.disclosebot.io',
+        pathname: '/v1/p/directories/adf701/organizations/example-123abc',
       }),
     ]));
-    expect(requests.filter((url) => url.pathname.endsWith('adf701.json')).every(
-      (url) => url.searchParams.get('per_page') === '100',
+    expect(requests.filter((url) => url.pathname.endsWith('/organizations')).every(
+      (url) => url.searchParams.get('page[size]') === '25' && Boolean(url.searchParams.get('filter[name_cont]')),
     )).toBe(true);
   });
 
-  test('treats malformed directory API payloads as a failed fetch, not an HTML fallback', async () => {
-    globalThis.fetch = (async () => Response.json({ organizations: 'not-an-array' })) as unknown as typeof fetch;
+  test('rejects malformed directory payloads instead of returning a negative verdict', async () => {
+    globalThis.fetch = (async () => Response.json({ data: 'not-an-array' })) as unknown as typeof fetch;
 
-    const result = await lookupDirectory('example.test');
-
-    expect(result).toEqual({ matched: false, candidatesConsidered: 0 });
+    await expect(lookupDirectory('example.test')).rejects.toThrow('directory check unavailable');
   });
 
-  test('limits the Origin rewrite to the disclose.io tenant widget endpoint', async () => {
+  test('rejects offline and HTTP failures instead of returning a negative verdict', async () => {
+    globalThis.fetch = (async () => { throw new TypeError('offline'); }) as unknown as typeof fetch;
+    await expect(lookupDirectory('example.test')).rejects.toThrow('offline');
+    globalThis.fetch = (async () => new Response(null, { status: 503 })) as unknown as typeof fetch;
+    await expect(lookupDirectory('example.test')).rejects.toThrow('503');
+  });
+
+  test('a successful empty search is a genuine unmatched result', async () => {
+    globalThis.fetch = (async () => Response.json({ data: [] })) as unknown as typeof fetch;
+    expect(await lookupDirectory('example.test')).toEqual({ matched: false, candidatesConsidered: 0 });
+  });
+
+  test('uses a successful search even if the other search fails', async () => {
+    globalThis.fetch = (async (input) => {
+      const url = new URL(String(input));
+      if (url.searchParams.get('filter[name_cont]') === 'example.test') return new Response(null, { status: 503 });
+      if (url.pathname.includes('/organizations/')) return Response.json({ data: listOrganization, included });
+      return Response.json({ data: [listOrganization], included });
+    }) as typeof fetch;
+    expect((await lookupDirectory('example.test')).matched).toBe(true);
+  });
+
+  test('does not treat an incomplete empty search as a negative verdict', async () => {
+    globalThis.fetch = (async (input) => {
+      const url = new URL(String(input));
+      if (url.searchParams.get('filter[name_cont]') === 'example.test') return new Response(null, { status: 503 });
+      return Response.json({ data: [] });
+    }) as typeof fetch;
+    await expect(lookupDirectory('example.test')).rejects.toThrow('a directory search failed');
+  });
+
+  test('limits the Origin rewrite to the disclose.io tenant public API endpoint', async () => {
     const root = path.resolve(import.meta.dir, '..');
     const manifest = JSON.parse(await readFile(path.join(root, 'manifest.json'), 'utf8'));
     const rules = JSON.parse(await readFile(path.join(root, 'rules/directory-api-origin.json'), 'utf8'));
 
     expect(manifest.permissions).toContain('declarativeNetRequestWithHostAccess');
-    expect(manifest.host_permissions).toContain('https://widgets.disclosebot.io/*');
+    expect(manifest.host_permissions).toContain('https://api.disclosebot.io/*');
     expect(rules).toEqual([expect.objectContaining({
       condition: expect.objectContaining({
-        urlFilter: '||widgets.disclosebot.io/directory/adf701',
+        urlFilter: '||api.disclosebot.io/v1/p/directories/adf701/',
         resourceTypes: ['xmlhttprequest'],
       }),
       action: expect.objectContaining({

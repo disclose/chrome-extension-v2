@@ -68,7 +68,7 @@ This extension takes a judgment that used to require an expert and turns it into
 <td valign="top"><b>✨ Best practice (Level&nbsp;5)</b><br>A clear, mature, researcher-safe disclosure program. The gold standard.</td>
 <td valign="top"><b>✓ Welcomes researchers</b><br>Full <b>safe harbor</b>: it accepts security research and protects good-faith reporters.</td>
 <td valign="top"><b>✓ Has a channel</b><br>There's a way to report a security issue, but without full safe-harbor protection.</td>
-<td valign="top"><b>⚠ Not listed</b><br>No published way to report security problems. Researchers may have nowhere to turn.</td>
+<td valign="top"><b>⚠ Not listed</b><br>No matching directory entry. A live lookup may find a published security contact.</td>
 </tr>
 </table>
 
@@ -76,7 +76,7 @@ The color of the toolbar icon encodes the same thing at a glance: deeper purple 
 
 ## Install
 
-**Chrome Web Store:** *coming soon*. The listing is in review. ⭐ this repo to hear when it's live.
+**Chrome Web Store:** release preparation is underway. A public listing link will be added after Google approves publication.
 
 **Install from a release (no build needed):**
 
@@ -102,17 +102,17 @@ After any change: `bun run build`, then hit **reload ↻** on the extension's ca
 
 ## Your privacy comes first
 
-- It only ever sends the current site's **domain** (e.g. `example.com`), never your URL, query string, or page contents.
+- It reads the active tab's URL locally to derive its **domain** (e.g. `example.com`). It never sends the full URL, path, query string or page contents to the APIs.
 - Requests have no cookies, credentials, or account identity. The optional lookup request includes one random, opaque token held only in `chrome.storage.session` for that browser session, solely so the service can apply fair-use limits.
-- The directory check runs automatically through directory.disclose.io's widget API; the deeper `lookup.disclose.io` query only runs when **you** click "Look this up."
-- Results and the lookup token are session-only and are cleared when the browser restarts. No browsing-history storage.
-- `host_permissions` are limited to the directory widget API and `lookup.disclose.io`: the extension can't touch the sites you visit.
+- The directory check runs automatically for the active tab through `api.disclosebot.io`, the directory's public API. The deeper `lookup.disclose.io` query only runs when **you** click the live-lookup button.
+- Domain-keyed results and the lookup token are session-only and clear when the browser session ends. The extension does not use the browsing-history API or store a chronological navigation log.
+- `host_permissions` are limited to the directory API and `lookup.disclose.io`: the extension can't touch the sites you visit.
 
-Full policy: **[disclose-extension-privacy.pages.dev](https://disclose-extension-privacy.pages.dev/)**.
+Full policy: **[Privacy policy](https://github.com/disclose/chrome-extension-v2/blob/main/store/PRIVACY.md)**.
 
 ## How it works
 
-- On each top-frame navigation, the MV3 service worker takes the active tab's eTLD+1 and queries directory.disclose.io's public widget JSON API (`widgets.disclosebot.io/directory/adf701.json?q=<name>`) for matching programs and program details.
+- On active-tab navigation, tab activation or popup opening, the MV3 service worker derives the site's eTLD+1 and checks its cache or queries the directory's public JSON API (`api.disclosebot.io/v1/p/directories/adf701/organizations?filter[name_cont]=<name>`) for matching programs and program details.
 - Matches are filtered with the same hosting-domain + entity-match logic the `lookup.disclose.io` server uses, so a platform-hosted policy doesn't make every program match.
 - The maturity/verdict and icon color are derived from the matched program (`src/lib/maturity.ts`).
 - When you run a live lookup, the popup calls `POST https://lookup.disclose.io/api/lookup` with a session-scoped fair-use token and caches its ETag-validated result for a richer answer (security.txt, security-page probe, retaliation-history overlay).
@@ -136,9 +136,16 @@ bunx playwright install chromium   # one-time: Chromium the test runner loads th
 bun run build        # esbuild bundle + sharp icon rendering → dist/
 bun run test:unit    # API, presentation, and release contract tests
 bun run test         # mocked Playwright suite + axe-core a11y scan
-SMOKE=1 bun run test # also hits production directory.disclose.io as a sanity check
+bun run test:live    # real directory + lookup APIs in an isolated Chromium profile
 bun run package      # → artifacts/disclose-extension-vX.Y.Z.zip + SHA256SUMS
 ```
+
+`test:live` is an opt-in production integration check against the built extension.
+It uses a disposable Chromium profile, checks a real directory match and rendered
+lookup contacts, verifies ETag revalidation returns HTTP 304, and checks that API
+requests omit cookies and authorization credentials. Evidence is written to
+`release-evidence/`. The existing `SMOKE=1 bun run test` command also invokes this
+live check after the mocked suite.
 
 <details>
 <summary><b>Project layout</b></summary>

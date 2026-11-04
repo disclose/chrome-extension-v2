@@ -1,73 +1,83 @@
 # Privacy Policy — disclose.io browser extension
 
-**Effective date:** 5 July 2026
+**Effective date:** 4 November 2026
+
 **Applies to:** the "disclose.io" Chrome extension (`disclose/chrome-extension-v2`)
 
 ## Single purpose
 
-The extension has one purpose: to show you, for the site you're currently on,
-whether it has a way to report security problems — a vulnerability disclosure
-program (VDP), safe harbor for researchers, and its disclosure-maturity level —
-using data from the disclose.io directory.
+The extension shows the current site's vulnerability-disclosure posture, safe
+harbor and maturity using the disclose.io directory. It also offers an optional
+live security-contact lookup.
 
-## What the extension accesses, and what it sends
+## What the extension accesses and sends
 
-**It reads:** the **registrable domain** of your active tab — e.g. `example.com`
-— derived from the tab's URL.
+The extension reads the active tab's URL locally to derive its registrable domain
+(for example, `example.com`). It uses the domain to update the toolbar badge and
+popup when you navigate, activate a tab or open the popup. It does not read page
+contents or use Chrome's browsing-history API.
 
-**It never reads or sends:** the full URL, the path or query string, the page
-contents, your browsing history beyond the current tab's domain, your identity,
-or any account information. The extension has no login and no user account.
+The full tab URL, path, query string, page contents and account information are
+never sent to the directory or lookup APIs. There is no extension login or user
+account.
 
-**It sends the domain to two disclose.io services:**
+| When | Destination | What is sent |
+|------|-------------|--------------|
+| Automatically for the active tab's disclosure check | The directory's public API at `https://api.disclosebot.io/v1/p/directories/adf701` | The registrable domain, domain-derived search text and requested directory program identifiers |
+| When you click the live-lookup button | `https://lookup.disclose.io/api/lookup` | The registrable domain and a random browser-session fair-use token; a cached-response identifier may be sent to revalidate a result |
 
-| When | Where | Method | What is sent |
-|------|-------|--------|--------------|
-| Automatically, when you switch to or navigate a tab | directory.disclose.io's widget API | `GET` | the registrable domain, to look up its disclosure status |
-| Only when you click **"Look this up"** | `lookup.disclose.io/api/lookup` | `POST` | the registrable domain and a random browser-session token, to run a deeper security-contact lookup and apply fair-use limits |
+Both services support the disclose.io Project's disclosure tools. Requests omit
+cookies and account credentials. As with any HTTPS request, the receiving
+services and their hosting providers receive normal connection metadata, such as
+the IP address and request headers. The extension sends no page content,
+authentication data or advertising identifiers.
 
-Both requests carry no cookies, credentials, or account identity. The lookup
-token is random, opaque, and stored only in Chrome's session storage: it is
-cleared when the browser closes and is not a cookie, account ID, or cross-browser
-identifier. Both endpoints are operated by **the disclose.io Project**, a
-nonprofit vulnerability-disclosure standardization effort. The domain is **not**
-sent to any other party, advertiser, or analytics service.
+The live-lookup token is random, opaque and held only in Chrome's session
+storage. It is cleared when the browser session ends and is not an account ID or
+cross-browser identifier. The directory requests use a fixed directory Origin
+header so the public directory API can accept them.
 
-## Data storage
+## Local storage
 
-Results and the random lookup token are cached **locally for the current browser
-session** using Chrome's `storage.session` API, to avoid repeat network requests.
-This cache is not transmitted to disclose.io or anyone else and is cleared when
-the browser closes or you remove the extension.
+Directory and lookup results are cached by domain in `chrome.storage.session`
+to avoid repeated requests. This includes domains checked during the browser
+session; the extension does not keep a chronological navigation log. Directory
+cache entries expire after one hour. Lookup results and the random token remain
+for the browser session. Session storage is cleared when the browser session ends
+or the extension is removed, and is not synced across devices.
 
-## Logging by the receiving services
+## Service logs and use
 
-To operate and protect the directory and lookup services, disclose.io may log
-requests (including the queried domain and timestamp) per its own operational
-policy at [disclose.io](https://disclose.io). These logs are used for service
-reliability and abuse prevention, not for advertising or profiling, and are not
-sold.
+The receiving services may log queried domains, timestamps, IP addresses, request
+headers and the live-lookup fair-use token to provide the lookup, maintain
+reliability and prevent abuse. These requests are handled by the services and
+their infrastructure providers. They are not used for advertising or unrelated
+profiling, and are not sold.
 
-## What we do NOT do
+## Limited use
 
-- We do **not** sell or rent your data.
-- We do **not** use your data for advertising, creditworthiness, or lending.
-- We do **not** track you across sites beyond the single domain check the
-  feature requires.
-- We do **not** collect personally identifiable information.
+The extension's use and transfer of information follows the Chrome Web Store
+User Data Policy, including its Limited Use requirements. Information is used
+only to provide and maintain the extension's single purpose and protect its
+services. It is not sold, used for advertising or used to determine
+creditworthiness or lending eligibility. Human access is limited to the
+exceptions allowed by that policy, such as investigating abuse or complying with
+law.
 
 ## Your choices
 
-The automatic directory check runs only while the extension is installed; remove
-the extension to stop it entirely. The deeper lookup only ever runs when you
-explicitly click "Look this up."
+Automatic directory checks run while the extension is enabled. Disable or remove
+the extension to stop them. The deeper live lookup runs only when you click its
+button. End the browser session or remove the extension to clear local session
+storage. Contact us with questions about service-held data; the extension has no
+account or server-side user profile to manage.
 
 ## Contact
 
-Questions about this policy: **security@disclose.io** · source and issues:
+Privacy questions: **security@disclose.io**. Source and issues:
 [github.com/disclose/chrome-extension-v2](https://github.com/disclose/chrome-extension-v2).
 
 ## Changes
 
-We'll update this page and its effective date if the extension's data practices
-change.
+We will update this policy and its effective date when the extension's data
+practices change.

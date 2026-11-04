@@ -51,7 +51,7 @@ const SCENARIOS: ScenarioExpectation[] = [
     domain: 'unknown-example.test',
     pageUrl: 'https://unknown-example.test/',
     expectedIconState: 'none',
-    expectedHeadlineMatch: /No published way/i,
+    expectedHeadlineMatch: /Not found in the disclose.io directory/i,
     status: 'unmatched',
   },
 ];
@@ -91,14 +91,14 @@ async function fulfillRoute(route: Route, body: string, contentType = 'text/html
 
 async function setupRoutes(context: BrowserContext, lookupVariant: 'happy' | 'retaliation'): Promise<void> {
   // 1. directory.disclose.io's widget JSON API
-  await context.route('https://widgets.disclosebot.io/directory/adf701*', async (route) => {
+  await context.route('https://api.disclosebot.io/v1/p/directories/adf701/organizations*', async (route) => {
     const url = new URL(route.request().url());
-    if (url.pathname === '/directory/adf701.json') {
-      const q = url.searchParams.get('q') ?? '';
+    if (url.pathname === '/v1/p/directories/adf701/organizations') {
+      const q = url.searchParams.get('filter[name_cont]') ?? '';
       await fulfillRoute(route, listResponseFor(q), 'application/json');
       return;
     }
-    const detailMatch = url.pathname.match(/^\/directory\/adf701\/organization\/([^/]+)\.json$/);
+    const detailMatch = url.pathname.match(/^\/v1\/p\/directories\/adf701\/organizations\/([^/]+)$/);
     if (!detailMatch) {
       await route.fulfill({ status: 404, body: 'not mocked' });
       return;
@@ -396,6 +396,41 @@ async function runHappyLookupScenario(
   }
 }
 
+async function runPopupReadinessScenarios(context: BrowserContext, sw: ServiceWorker, extId: string): Promise<void> {
+  const errorMatcher = (url: URL) => url.hostname === 'api.disclosebot.io'
+    && /^offline[- ]example/.test(url.searchParams.get('filter[name_cont]') ?? '');
+  await context.route(errorMatcher, (route) => route.fulfill({ status: 503, body: 'unavailable' }));
+  const scenarios = [
+    { name: 'popup-before-evaluation', url: 'https://fresh-example.test/', headline: 'Not found in the disclose.io directory', disabled: false },
+    { name: 'directory-error', url: 'https://offline-example.test/', headline: 'Directory check unavailable', disabled: false },
+    { name: 'ineligible-page', url: 'about:blank', headline: 'This page cannot be checked', disabled: true },
+  ];
+  try {
+    for (const scenario of scenarios) {
+      const target = await context.newPage();
+      const popup = await context.newPage();
+      try {
+        await target.goto(scenario.url);
+        const tabId = await getTabIdFor(sw, scenario.url);
+        if (tabId === null) throw new Error(`could not find ${scenario.name} tab`);
+        // Open immediately, without waiting for the automatic directory check.
+        await popup.goto(`chrome-extension://${extId}/popup.html?testTabId=${tabId}`);
+        await popup.waitForFunction((headline) => document.getElementById('hero-headline')?.textContent === headline, scenario.headline);
+        const disabled = await popup.locator('#lookup-btn').isDisabled();
+        if (disabled !== scenario.disabled) recordFailure(scenario.name, `lookup disabled=${disabled}; expected ${scenario.disabled}`);
+        else recordPass(scenario.name, 'resolved current-tab state and lookup availability');
+        if (await popup.locator('.hero__spinner').isVisible()) recordFailure(scenario.name, 'spinner remained visible after resolution');
+        await runAxeScan(popup, extId, scenario.name);
+      } finally {
+        await popup.close();
+        await target.close();
+      }
+    }
+  } finally {
+    await context.unroute(errorMatcher);
+  }
+}
+
 async function getExtensionId(sw: ServiceWorker): Promise<string> {
   // SW URL is chrome-extension://<id>/background.js
   const url = (sw as unknown as { url: () => string }).url();
@@ -434,34 +469,14 @@ async function launchContext(
 }
 
 async function runSmokeCheck(): Promise<void> {
-  console.log('\n— Live smoke check (SMOKE=1) — hitting production directory.disclose.io —');
-  const { lookupDirectory } = await import('../src/lib/directory');
-  // Domains chosen because the directory currently lists their primary
-  // brand entry under the eTLD+1. 1password.com / github.com look intuitive
-  // but are NOT directly listed (only agilebits/1password.ca and several
-  // unrelated *.github.* entries exist), so they're left out.
-  const expectations: Array<{ domain: string; mustMatch: boolean }> = [
-    { domain: 'google.com', mustMatch: true },
-    { domain: 'cloudflare.com', mustMatch: true },
-    { domain: 'shopify.com', mustMatch: true },
-    { domain: 'this-domain-is-extremely-unlikely-to-be-listed-9b7q3.example', mustMatch: false },
-  ];
-  for (const { domain, mustMatch } of expectations) {
-    try {
-      const result = await lookupDirectory(domain);
-      const got = result.matched;
-      if (got !== mustMatch) {
-        recordFailure(`smoke:${domain}`, `expected matched=${mustMatch}, got matched=${got}`);
-      } else {
-        const detail = result.program
-          ? `${result.program.programName} • SH=${result.program.safeHarbor ?? '-'} • L=${result.program.maturityLevel ?? '-'}`
-          : 'no match';
-        recordPass(`smoke:${domain}`, detail);
-      }
-    } catch (err) {
-      recordFailure(`smoke:${domain}`, err instanceof Error ? err.message : String(err));
-    }
-  }
+  console.log('\n— Live Chrome smoke check (SMOKE=1) —');
+  const child = Bun.spawn([process.execPath, path.join(ROOT, 'scripts/test-live.ts')], {
+    cwd: ROOT,
+    stdout: 'inherit',
+    stderr: 'inherit',
+  });
+  const exitCode = await child.exited;
+  if (exitCode !== 0) recordFailure('live-smoke', `live extension checks exited with code ${exitCode}`);
 }
 
 async function main(): Promise<void> {
@@ -492,6 +507,9 @@ async function main(): Promise<void> {
 
     console.log('\n— Running happy live-lookup scenario —');
     await runHappyLookupScenario(context, sw, extId);
+
+    console.log('\n— Popup startup, unavailable, and ineligible states —');
+    await runPopupReadinessScenarios(context, sw, extId);
 
     console.log('\n— Switching to retaliation lookup mode and re-running —');
     await context.unrouteAll();

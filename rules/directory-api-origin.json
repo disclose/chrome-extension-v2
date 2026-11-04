@@ -13,7 +13,7 @@
       ]
     },
     "condition": {
-      "urlFilter": "||widgets.disclosebot.io/directory/adf701",
+      "urlFilter": "||api.disclosebot.io/v1/p/directories/adf701/",
       "resourceTypes": ["xmlhttprequest"]
     }
   }

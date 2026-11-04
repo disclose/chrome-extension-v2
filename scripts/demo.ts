@@ -37,13 +37,13 @@ async function fulfill(route: Route, body: string, contentType = 'text/html') {
 }
 
 async function setupRoutes(context: BrowserContext) {
-  await context.route('https://widgets.disclosebot.io/directory/adf701*', async (route) => {
+  await context.route('https://api.disclosebot.io/v1/p/directories/adf701/organizations*', async (route) => {
     const url = new URL(route.request().url());
-    if (url.pathname === '/directory/adf701.json') {
-      await fulfill(route, listResponseFor(url.searchParams.get('q') ?? ''), 'application/json');
+    if (url.pathname === '/v1/p/directories/adf701/organizations') {
+      await fulfill(route, listResponseFor(url.searchParams.get('filter[name_cont]') ?? ''), 'application/json');
       return;
     }
-    const detailMatch = url.pathname.match(/^\/directory\/adf701\/organization\/([^/]+)\.json$/);
+    const detailMatch = url.pathname.match(/^\/v1\/p\/directories\/adf701\/organizations\/([^/]+)$/);
     if (!detailMatch) {
       await route.fulfill({ status: 404, body: 'not mocked' });
       return;

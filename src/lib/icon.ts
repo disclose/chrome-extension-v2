@@ -13,7 +13,7 @@ function pathsFor(state: IconState): chrome.action.TabIconDetails['path'] {
 
 const TITLES: Record<IconState, string> = {
   unknown: 'disclose.io — checking…',
-  none: 'disclose.io — no published security disclosure for this site',
+  none: 'disclose.io — no matching directory entry for this site',
   vdp: 'disclose.io — this site has a security-report channel',
   'safe-harbor': 'disclose.io — this site welcomes researchers (safe harbor)',
   level5: 'disclose.io — best-practice security disclosure',

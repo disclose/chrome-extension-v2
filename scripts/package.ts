@@ -9,6 +9,7 @@ const ARTIFACTS = path.join(ROOT, 'artifacts');
 
 interface ExtensionManifest {
   version: string;
+  description: string;
   manifest_version: number;
   background?: { service_worker?: string };
   action?: { default_popup?: string; default_icon?: Record<string, string> };
@@ -61,6 +62,9 @@ async function readMetadata(expectedTag?: string): Promise<PackageMetadata> {
     throw new Error(`manifest version is not Chrome-compatible: ${manifest.version}`);
   }
   if (manifest.manifest_version !== 3) throw new Error('release manifest must use MV3');
+  if (!manifest.description || manifest.description.length > 132) {
+    throw new Error('Chrome manifest description must contain 1–132 characters');
+  }
   if (expectedTag && expectedTag !== `v${manifest.version}`) {
     throw new Error(`tag ${expectedTag} does not match version v${manifest.version}`);
   }

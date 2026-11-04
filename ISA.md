@@ -23,6 +23,28 @@ capabilities_invoked:
   - Interceptor
 ---
 
+> This document records the August 2026 integration task. Its decisions and
+> verification results describe that deployment, not proof of the current
+> release or Chrome Web Store submission status.
+
+## Current release contract — 4 November 2026
+
+- Release version: **0.2.2**. The older widget JSON routes now return 404.
+- Directory API base: `https://api.disclosebot.io/v1/p/directories/adf701`.
+  Search uses `GET /organizations?filter[name_cont]=<domain-or-name>&sort=name&page[size]=25`;
+  details use `GET /organizations/<slug>`. This is the route family used by the
+  current public widget loader.
+- Requests omit cookies and credentials. They send the registrable domain or
+  domain-derived organization search text, and program identifiers for details.
+- The API requires `Origin: https://directory.disclose.io`; the static DNR rule
+  is retained, scoped to the new disclose.io tenant API path. The historical
+  `widgets.disclosebot.io` rule and API evidence below are superseded.
+- Directory and lookup host permissions are limited to `api.disclosebot.io` and
+  `lookup.disclose.io`. The extension does not access the contents of visited pages.
+- The launch privacy policy is
+  `https://github.com/disclose/chrome-extension-v2/blob/main/store/PRIVACY.md`;
+  it must be verified after merging the release changes.
+
 ## Problem
 
 `lookup.disclose.io` now returns route-aware reporting results: owner channels, authorized managed agents, responsible operators, related parties, inferred leads, and coordinator backstops are distinct. The extension only models a flat contact list, so it cannot explain who a channel reaches or use the API's validator and session contract.
@@ -54,12 +76,12 @@ A person opening the extension can immediately tell whether a live lookup found 
 - Preserve `contacts` compatibility while preferring ordered `contactGroups` when supplied.
 - Cache responses only in `chrome.storage.session`; reuse no result after a browser restart.
 - Browser-facing claims close only with real Chrome verification through Interceptor.
-- Directory API access uses `widgets.disclosebot.io/directory/adf701` and its documented tenant response, never a guessed endpoint.
+- Directory API access uses `api.disclosebot.io/v1/p/directories/adf701/organizations` and the current public widget loader's tenant response, never a guessed endpoint.
 
 ## Dependencies
 
 requires: lookup-disclose-io — checked-in `openapi.yaml` is the contract for `POST /api/lookup`; experimental `/api/evidence` remains excluded.
-requires: directory-disclose-io — `widgets.disclosebot.io/directory/adf701(.json)` is the current public directory widget API for the disclose.io tenant.
+requires: directory-disclose-io — `api.disclosebot.io/v1/p/directories/adf701/organizations` is the current public directory API for the disclose.io tenant, as used by its public widget loader.
 
 ## Goal
 

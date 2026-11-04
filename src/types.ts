@@ -11,6 +11,7 @@ export interface ProgramSnapshot {
   offersBounty?: boolean;
   offersSwag?: boolean;
   maturityLevel?: string;
+  maturityRank?: number;
   maturityScore?: number;
   directoryUrl: string;
 }
@@ -173,6 +174,7 @@ export interface PopupResponse {
 
 export interface LookupRequest {
   type: 'runLookup';
+  tabId: number;
   domain: string;
 }
 
