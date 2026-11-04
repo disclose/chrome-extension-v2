@@ -279,7 +279,9 @@ export async function lookupDirectory(
       policyUrl: best.policyUrl ?? undefined,
       contactUrl: best.contactUrl ?? undefined,
       contactEmail: best.contactEmail ?? undefined,
-      securityTxtUrl: best.securityTxtUrl ?? undefined,
+      securityTxtUrl: domainOwnsHost(domain, extractHostFromUrl(best.securityTxtUrl ?? ''))
+        ? best.securityTxtUrl ?? undefined
+        : undefined,
       safeHarbor: best.safeHarbor ?? undefined,
       offersBounty: best.offersBounty ?? undefined,
       offersSwag: best.offersSwag ?? undefined,

@@ -43,6 +43,7 @@ async function testExtension(temp: string): Promise<void> {
     ],
   });
   const requests: Array<Promise<NetworkResult>> = [];
+  let directoryEvaluation: TabEvaluation | undefined;
   const networkFailures: Array<{ request: Request; error: string }> = [];
   const responseStatuses = new Map<Request, number>();
   context.on('response', (response) => {
@@ -95,8 +96,13 @@ async function testExtension(temp: string): Promise<void> {
     await popup.screenshot({ path: path.join(EVIDENCE, `live-${LABEL}-directory.png`), fullPage: true });
     const session = await worker.evaluate(async () => await chrome.storage.session.get(null));
     const evaluation = session[`eval:${DOMAIN}`] as TabEvaluation | undefined;
+    directoryEvaluation = evaluation;
     assert.equal(evaluation?.status, 'matched', `live directory failed: ${await popup.locator('#hero-headline').innerText()}`);
     assert.equal(evaluation.domain, DOMAIN);
+    if (evaluation.program?.securityTxtUrl) {
+      const securityTxtHost = new URL(evaluation.program.securityTxtUrl).hostname;
+      assert.ok(securityTxtHost === DOMAIN || securityTxtHost.endsWith(`.${DOMAIN}`), 'security.txt link belongs to another domain');
+    }
     if (process.env.LIVE_EXPECTED_ICON) {
       assert.equal(evaluation.iconState, process.env.LIVE_EXPECTED_ICON, 'directory maturity mapped to the wrong toolbar state');
     }
@@ -146,6 +152,7 @@ async function testExtension(temp: string): Promise<void> {
   } catch (error) {
     await writeFile(path.join(EVIDENCE, `live-${LABEL}-api-failure.json`), JSON.stringify({
       status: 'failed', checkedAt: new Date().toISOString(),
+      directory: directoryEvaluation,
       error: error instanceof Error ? error.message : String(error), network: await Promise.all(requests),
       networkFailures: networkFailures.map(({ request, error }) => ({ url: request.url(), error, responseStatus: responseStatuses.get(request) })),
     }, null, 2));

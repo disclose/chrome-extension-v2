@@ -36,7 +36,7 @@ afterEach(() => {
 });
 
 describe('disclose.io public directory JSON:API', () => {
-  test('decodes a captured production response and resolves included policies by relationship', async () => {
+  test('resolves production policy relationships while excluding unrelated security.txt hosts', async () => {
     // Public response captured 2026-11-04 from the current organization endpoint.
     const fixture = JSON.parse(await readFile(path.join(import.meta.dir, 'fixtures/directory-google-jsonapi.json'), 'utf8'));
     globalThis.fetch = (async (input) => Response.json({
@@ -44,7 +44,8 @@ describe('disclose.io public directory JSON:API', () => {
       data: new URL(String(input)).pathname.endsWith('/organizations') ? [fixture.data] : fixture.data,
       included: [...fixture.included].reverse(),
     })) as typeof fetch;
-    expect((await lookupDirectory('google.com')).program).toMatchObject({
+    const program = (await lookupDirectory('google.com')).program;
+    expect(program).toMatchObject({
       programName: 'Google',
       policyUrl: 'https://g.co/vrp',
       contactEmail: 'security@google.com',
@@ -54,6 +55,10 @@ describe('disclose.io public directory JSON:API', () => {
       maturityLevel: 'Basic',
       maturityScore: 53.33,
     });
+    // The source record incorrectly points Google's security.txt at 2cool2.be.
+    // Keep legitimate off-domain program links, but never advertise that file
+    // as Google's own security.txt.
+    expect(program?.securityTxtUrl).toBeUndefined();
   });
 
   test('maps the disclose.io tenant list and detail payloads into a program snapshot', async () => {
