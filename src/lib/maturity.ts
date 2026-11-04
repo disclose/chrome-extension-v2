@@ -17,9 +17,10 @@ function safeHarborIsNone(value: string | undefined): boolean {
 }
 
 function isLevel5(program: ProgramSnapshot): boolean {
-  if (typeof program.maturityScore === 'number' && program.maturityScore >= 80) return true;
+  if (typeof program.maturityRank === 'number') return program.maturityRank >= 5;
   const level = program.maturityLevel?.toLowerCase() ?? '';
-  if (/level\s*5/.test(level) || level === 'full') {
+  if (level) {
+    if (!/level\s*5\b|\bl5\b|full\s*\+.*cvd/.test(level)) return false;
     return safeHarborIsFull(program.safeHarbor);
   }
   return false;
@@ -38,32 +39,33 @@ export function iconStateFor(program: ProgramSnapshot | undefined): IconState {
  * The directory encodes maturity as escalating purple saturation
  * (Basic/security.txt = lightest → Full = mid → Full+CVD = solid brand). We
  * mirror that with three intensities so the popup badge reads the same as a
- * directory row. Label-first (the directory's tier vocabulary), score-fallback.
+ * directory row. Use the API rank or explicit tier vocabulary; scores have no
+ * fixed denominator and cannot establish a disclosure tier on their own.
  */
 export type MaturityTier = 'basic' | 'partial' | 'full' | 'top';
 
 export function maturityTier(program: ProgramSnapshot | undefined): MaturityTier {
   if (!program) return 'basic';
+  if (typeof program.maturityRank === 'number') {
+    if (program.maturityRank >= 5) return 'top';
+    if (program.maturityRank === 4) return 'full';
+    if (program.maturityRank === 3) return 'partial';
+    return 'basic';
+  }
   const level = (program.maturityLevel ?? '').toLowerCase().trim();
   // The directory renders four distinct badge colours; we match its rungs 1:1.
   // ORDER IS LOAD-BEARING: "Full+CVD" matches both the top branch and the plain
   // `\bfull\b` branch, so top MUST be tested before full or it silently downgrades.
-  // Top: Full+CVD (full + proactive timeline) and the extension's own Level 5/4.
-  if (/full\s*\+|cvd|level\s*[45]\b|\bl[45]\b/.test(level)) return 'top';
+  // Explicit level numbers take precedence over descriptive text.
+  if (/level\s*5\b|\bl5\b/.test(level)) return 'top';
+  if (/level\s*4\b|\bl4\b/.test(level)) return 'full';
+  if (/full\s*\+.*cvd/.test(level)) return 'top';
   // Full: explicitly authorises testing + law exemptions.
   if (/\bfull\b/.test(level)) return 'full';
   // Partial: won't-pursue-legal (safe-harbor without full authorisation), Advanced.
   if (/partial|advanced|intermediate|level\s*3\b|\bl3\b/.test(level)) return 'partial';
   // Basic: public policy + channel, security.txt (intake exists), low levels.
   if (/basic|security\.?txt|level\s*[0-2]\b|\bl[0-2]\b|none/.test(level)) return 'basic';
-  // Unrecognised label → lean on the numeric score (label always dominates above).
-  const s = program.maturityScore;
-  if (typeof s === 'number') {
-    if (s >= 80) return 'top';
-    if (s >= 65) return 'full';
-    if (s >= 45) return 'partial';
-    return 'basic';
-  }
   return 'basic';
 }
 
@@ -102,9 +104,9 @@ export function verdictFor(state: IconState, program?: ProgramSnapshot): {
       };
     case 'none':
       return {
-        headline: 'No published way to report security problems',
+        headline: 'Not found in the disclose.io directory',
         detail:
-          'This site is not in the disclose.io directory. Researchers may have nowhere clear to send security findings.',
+          'The directory has no matching entry. Run a live lookup to check for a published security contact.',
         tone: 'concern',
       };
     case 'unknown':

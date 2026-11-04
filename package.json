@@ -1,6 +1,6 @@
 {
   "name": "disclose-chrome-extension",
-  "version": "0.2.1",
+  "version": "0.2.2",
   "private": true,
   "license": "MIT",
   "description": "Browser extension that surfaces vulnerability-disclosure posture through the directory.disclose.io and lookup.disclose.io APIs.",
@@ -10,11 +10,12 @@
     "build": "bun scripts/build.ts",
     "test": "bun scripts/test.ts",
     "test:unit": "bun test test",
+    "test:live": "bun scripts/test-live.ts",
     "verify": "bun run test:unit && bunx tsc --noEmit && bun run build",
     "iterate": "bun scripts/build.ts && bun scripts/test.ts",
     "package": "bun scripts/package.ts",
     "package:check": "bun scripts/package.ts --check",
-    "smoke": "SMOKE=1 bun scripts/test.ts",
+    "smoke": "bun scripts/test-live.ts",
     "demo": "bun scripts/demo.ts"
   },
   "devDependencies": {

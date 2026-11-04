@@ -1,4 +1,4 @@
-// Structured directory lookup through the disclose.io tenant's public widget API.
+// Structured directory lookup through the disclose.io tenant's public JSON:API.
 
 import {
   HOSTING_SUBDOMAINS,
@@ -11,7 +11,7 @@ import {
 } from './match';
 import type { ProgramSnapshot } from '../types';
 
-const DIRECTORY_API_BASE_URL = 'https://widgets.disclosebot.io/directory/adf701';
+const DIRECTORY_API_BASE_URL = 'https://api.disclosebot.io/v1/p/directories/adf701';
 const DIRECTORY_DISPLAY_BASE_URL = 'https://directory.disclose.io/o';
 const FETCH_TIMEOUT_MS = 8000;
 
@@ -35,6 +35,7 @@ interface DirectoryOrganization {
   contactUrl?: string | null;
   securityTxtUrl?: string | null;
   maturity?: {
+    level?: number | null;
     label?: string | null;
     score?: number | null;
   } | null;
@@ -67,53 +68,60 @@ function numberValue(value: unknown): number | undefined {
 }
 
 function decodePolicy(value: unknown): DirectoryPolicy | null {
-  if (!isRecord(value)) return null;
+  if (!isRecord(value) || !isRecord(value.attributes)) return null;
+  const attributes = value.attributes;
   return {
-    safeHarbor: stringValue(value.safeHarbor),
-    offersBounty: booleanValue(value.offersBounty),
-    offersSwag: booleanValue(value.offersSwag),
-    pointOfContact: stringValue(value.pointOfContact),
-    contactUrl: stringValue(value.contactUrl),
-    policyUrl: stringValue(value.policyUrl),
-    securitytxtUrl: stringValue(value.securitytxtUrl),
+    safeHarbor: stringValue(attributes.safe_harbor),
+    offersBounty: booleanValue(attributes.offers_bounty),
+    offersSwag: booleanValue(attributes.offers_swag),
+    pointOfContact: stringValue(attributes.point_of_contact),
+    contactUrl: stringValue(attributes.contact_url),
+    policyUrl: stringValue(attributes.policy_url) ?? stringValue(attributes.hosted_policy_url) ?? stringValue(attributes.public_url),
+    securitytxtUrl: stringValue(attributes.securitytxt_url),
   };
 }
 
-function decodeOrganization(value: unknown): DirectoryOrganization | null {
-  if (!isRecord(value)) return null;
-  const name = stringValue(value.name);
-  const slug = stringValue(value.slug);
+function decodeOrganization(value: unknown, included: unknown = []): DirectoryOrganization | null {
+  if (!isRecord(value) || value.type !== 'directory_organization' || !isRecord(value.attributes)) return null;
+  const attributes = value.attributes;
+  const name = stringValue(attributes.name);
+  const slug = stringValue(attributes.slug);
   if (!name || !slug) return null;
-  const maturity = isRecord(value.maturity)
-    ? {
-      label: stringValue(value.maturity.label),
-      score: numberValue(value.maturity.score),
-    }
-    : undefined;
-  const policies = Array.isArray(value.policies)
-    ? value.policies.map(decodePolicy).filter((policy): policy is DirectoryPolicy => policy !== null)
-    : undefined;
+  const relationships = isRecord(value.relationships) ? value.relationships : {};
+  const policyRelationship = isRecord(relationships.policies) ? relationships.policies : {};
+  const references = Array.isArray(policyRelationship.data) ? policyRelationship.data : [];
+  const resources = Array.isArray(included) ? included : [];
+  const policies = references.map((reference) => {
+    if (!isRecord(reference)) return null;
+    const resource = resources.find((candidate) => isRecord(candidate)
+      && candidate.id === reference.id && candidate.type === reference.type);
+    return decodePolicy(resource);
+  }).filter((policy): policy is DirectoryPolicy => policy !== null);
   return {
     name,
     slug,
-    safeHarbor: stringValue(value.safeHarbor),
-    offersBounty: booleanValue(value.offersBounty),
-    offersSwag: booleanValue(value.offersSwag),
-    policyUrl: stringValue(value.policyUrl),
-    contactUrl: stringValue(value.contactUrl),
-    securityTxtUrl: stringValue(value.securityTxtUrl),
-    maturity,
+    safeHarbor: stringValue(attributes.safe_harbor),
+    offersBounty: booleanValue(attributes.offers_bounty),
+    offersSwag: booleanValue(attributes.offers_swag),
+    policyUrl: stringValue(attributes.policy_url),
+    contactUrl: stringValue(attributes.contact_url),
+    securityTxtUrl: stringValue(attributes.security_txt_url),
+    maturity: {
+      level: numberValue(attributes.maturity_level),
+      label: stringValue(attributes.maturity_label),
+      score: numberValue(attributes.maturity_score),
+    },
     policies,
   };
 }
 
 function decodeListResponse(value: unknown): DirectoryListResponse {
-  if (!isRecord(value) || !Array.isArray(value.organizations)) {
-    throw new Error('directory API returned no organizations array');
+  if (!isRecord(value) || !Array.isArray(value.data)) {
+    throw new Error('directory API returned no JSON:API data array');
   }
   return {
-    organizations: value.organizations
-      .map(decodeOrganization)
+    organizations: value.data
+      .map((organization) => decodeOrganization(organization, value.included))
       .filter((organization): organization is DirectoryOrganization => organization !== null),
   };
 }
@@ -126,8 +134,9 @@ async function fetchJson(url: string, signal?: AbortSignal): Promise<unknown> {
   try {
     const response = await fetch(url, {
       signal: controller.signal,
+      credentials: 'omit',
       redirect: 'follow',
-      headers: { Accept: 'application/json' },
+      headers: { Accept: 'application/vnd.api+json' },
     });
     if (!response.ok) throw new Error(`directory API fetch failed: ${response.status}`);
     return await response.json();
@@ -138,14 +147,14 @@ async function fetchJson(url: string, signal?: AbortSignal): Promise<unknown> {
 }
 
 function apiPath(baseUrl: string, suffix = ''): string {
-  const root = baseUrl.replace(/\/$/, '').replace(/\.json$/, '');
-  return `${root}${suffix}.json`;
+  return `${baseUrl.replace(/\/$/, '')}/organizations${suffix}`;
 }
 
 function listUrl(baseUrl: string, query: string): string {
   const url = new URL(apiPath(baseUrl));
-  url.searchParams.set('q', query);
-  url.searchParams.set('per_page', '100');
+  url.searchParams.set('filter[name_cont]', query);
+  url.searchParams.set('sort', 'name');
+  url.searchParams.set('page[size]', '25');
   return url.toString();
 }
 
@@ -225,6 +234,10 @@ export async function lookupDirectory(
       await fetchJson(listUrl(baseUrl, query), options.signal),
     )),
   );
+  if (searchResponses.every((result) => result.status === 'rejected')) {
+    const failure = searchResponses[0] as PromiseRejectedResult;
+    throw new Error(`directory check unavailable: ${failure.reason instanceof Error ? failure.reason.message : String(failure.reason)}`);
+  }
   const candidates = new Map<string, DirectoryOrganization>();
   for (const result of searchResponses) {
     if (result.status !== 'fulfilled') continue;
@@ -232,15 +245,21 @@ export async function lookupDirectory(
       if (!candidates.has(organization.slug)) candidates.set(organization.slug, organization);
     }
   }
-  if (candidates.size === 0) return { matched: false, candidatesConsidered: 0 };
+  if (candidates.size === 0) {
+    if (searchResponses.some((result) => result.status === 'rejected')) {
+      throw new Error('directory check unavailable: a directory search failed');
+    }
+    return { matched: false, candidatesConsidered: 0 };
+  }
 
   const programs = await Promise.all(
     [...candidates.values()].map(async (candidate) => {
       try {
-        const detail = decodeOrganization(await fetchJson(
-          apiPath(baseUrl, `/organization/${encodeURIComponent(candidate.slug)}`),
+        const document = await fetchJson(
+          apiPath(baseUrl, `/${encodeURIComponent(candidate.slug)}`),
           options.signal,
-        ));
+        );
+        const detail = isRecord(document) ? decodeOrganization(document.data, document.included) : null;
         return toProgram(detail ?? candidate);
       } catch {
         return toProgram(candidate);
@@ -265,6 +284,7 @@ export async function lookupDirectory(
       offersBounty: best.offersBounty ?? undefined,
       offersSwag: best.offersSwag ?? undefined,
       maturityLevel: best.maturity?.label ?? undefined,
+      maturityRank: best.maturity?.level ?? undefined,
       maturityScore: best.maturity?.score ?? undefined,
       directoryUrl: `${DIRECTORY_DISPLAY_BASE_URL}/${best.slug}`,
     },

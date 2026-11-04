@@ -3,6 +3,7 @@ import { runLookup } from '../src/lib/lookup';
 import { describeLookupPresentation } from '../src/lib/route-presentation';
 import type { LookupReport } from '../src/types';
 import { happyLookupResponse } from './fixtures/lookup-mock';
+import { version } from '../manifest.json';
 
 const originalFetch = globalThis.fetch;
 
@@ -58,7 +59,9 @@ afterEach(() => {
 describe('lookup.disclose.io API contract', () => {
   test('sends the lookup session and recognizes a fresh validator', async () => {
     let request: Request | undefined;
+    let credentials: RequestCredentials | undefined;
     globalThis.fetch = (async (input, init) => {
+      credentials = init?.credentials;
       request = new Request(input, init);
       return Response.json(ownerRouteReport, {
         headers: { ETag: 'W/"lookup-example"', 'X-Lookup-Cache': 'miss' },
@@ -71,7 +74,8 @@ describe('lookup.disclose.io API contract', () => {
 
     expect(request?.url).toBe('https://lookup.disclose.io/api/lookup');
     expect(request?.headers.get('x-lookup-session')).toBe('s'.repeat(20));
-    expect(request?.headers.get('x-lookup-client')).toBe('chrome-extension/0.2.1');
+    expect(request?.headers.get('x-lookup-client')).toBe(`chrome-extension/${version}`);
+    expect(credentials).toBe('omit');
     expect(request?.headers.get('authorization')).toBeNull();
     expect(request?.headers.get('if-none-match')).toBeNull();
     expect(await request?.json()).toEqual({ input: 'example.test' });

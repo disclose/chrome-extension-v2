@@ -10,3 +10,4 @@ test/results.xml
 test/iteration-*.md
 *.log
 .DS_Store
+release-evidence/

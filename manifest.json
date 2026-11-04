@@ -1,8 +1,8 @@
 {
   "manifest_version": 3,
   "name": "disclose.io",
-  "version": "0.2.1",
-  "description": "See if a website welcomes security researchers — VDP, safe harbor, and disclosure maturity at a glance. Powered by directory.disclose.io.",
+  "version": "0.2.2",
+  "description": "See a site's vulnerability disclosure policy, safe harbor, and disclosure maturity. Powered by disclose.io.",
   "minimum_chrome_version": "116",
   "action": {
     "default_title": "disclose.io — checking…",
@@ -32,7 +32,7 @@
   ],
   "host_permissions": [
     "https://lookup.disclose.io/*",
-    "https://widgets.disclosebot.io/*"
+    "https://api.disclosebot.io/*"
   ],
   "declarative_net_request": {
     "rule_resources": [

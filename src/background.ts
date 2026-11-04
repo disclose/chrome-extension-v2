@@ -15,13 +15,11 @@ import type {
 } from './types';
 
 interface PendingTab {
-  tabId: number;
-  url: string;
   timer: ReturnType<typeof setTimeout>;
 }
 
 const pending = new Map<number, PendingTab>();
-const tabEvaluations = new Map<number, TabEvaluation>();
+const tabGenerations = new Map<number, number>();
 const DEBOUNCE_MS = 250;
 const LOOKUP_SESSION_STORAGE_KEY = 'lookup:session-id';
 const LOOKUP_CACHE_STORAGE_PREFIX = 'lookup:response:';
@@ -114,45 +112,53 @@ async function evaluateDomain(domain: string): Promise<TabEvaluation> {
   });
 }
 
-async function handleTab(tabId: number, url: string | undefined): Promise<void> {
-  const domain = eligibleDomainForUrl(url);
-  if (!domain) {
-    const evaluation = makeIneligibleEvaluation('');
-    tabEvaluations.set(tabId, evaluation);
-    await paintIcon(tabId, 'unknown');
-    return;
-  }
-
-  // Show "checking" state immediately
-  await paintIcon(tabId, 'unknown');
-
-  const evaluation = await evaluateDomain(domain);
-  tabEvaluations.set(tabId, evaluation);
-  await paintIcon(tabId, evaluation.iconState);
-}
-
-function scheduleEvaluation(tabId: number, url: string | undefined): void {
+function invalidateTab(tabId: number): number {
   const existing = pending.get(tabId);
   if (existing) clearTimeout(existing.timer);
+  pending.delete(tabId);
+  const generation = (tabGenerations.get(tabId) ?? 0) + 1;
+  tabGenerations.set(tabId, generation);
+  return generation;
+}
+
+async function evaluateTab(tabId: number, generation: number, automatic: boolean): Promise<TabEvaluation | null> {
+  try {
+    const tab = await chrome.tabs.get(tabId);
+    if (tabGenerations.get(tabId) !== generation || (automatic && !tab.active)) return null;
+    const domain = eligibleDomainForUrl(tab.url);
+    await paintIcon(tabId, 'unknown');
+    const evaluation = domain ? await evaluateDomain(domain) : makeIneligibleEvaluation('');
+
+    // A slow request must never repaint a tab that has moved to another site.
+    const current = await chrome.tabs.get(tabId);
+    if (tabGenerations.get(tabId) !== generation || eligibleDomainForUrl(current.url) !== domain) return null;
+    await paintIcon(tabId, evaluation.iconState);
+    return evaluation;
+  } catch {
+    // The tab may have closed while its request was running.
+    return null;
+  }
+}
+
+function scheduleEvaluation(tabId: number): void {
+  const generation = invalidateTab(tabId);
   const timer = setTimeout(() => {
     pending.delete(tabId);
-    void handleTab(tabId, url);
+    void evaluateTab(tabId, generation, true);
   }, DEBOUNCE_MS);
-  pending.set(tabId, { tabId, url: url ?? '', timer });
+  pending.set(tabId, { timer });
 }
 
 chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
-  if (changeInfo.status !== 'complete') return;
-  scheduleEvaluation(tabId, tab.url);
+  if (changeInfo.url || changeInfo.status === 'loading') {
+    invalidateTab(tabId);
+    void paintIcon(tabId, 'unknown');
+  }
+  if (changeInfo.status === 'complete' && tab.active) scheduleEvaluation(tabId);
 });
 
-chrome.tabs.onActivated.addListener(async (info) => {
-  try {
-    const tab = await chrome.tabs.get(info.tabId);
-    scheduleEvaluation(info.tabId, tab.url);
-  } catch {
-    /* tab gone */
-  }
+chrome.tabs.onActivated.addListener((info) => {
+  scheduleEvaluation(info.tabId);
 });
 
 chrome.tabs.onRemoved.addListener((tabId) => {
@@ -161,11 +167,14 @@ chrome.tabs.onRemoved.addListener((tabId) => {
     clearTimeout(p.timer);
     pending.delete(tabId);
   }
-  tabEvaluations.delete(tabId);
+  tabGenerations.delete(tabId);
 });
 
 chrome.runtime.onInstalled.addListener(() => {
   chrome.alarms.create('cache-sweep', { periodInMinutes: 60 });
+  void chrome.tabs.query({ active: true }).then((tabs) => {
+    for (const tab of tabs) if (tab.id !== undefined) scheduleEvaluation(tab.id);
+  });
 });
 
 chrome.alarms.onAlarm.addListener((alarm) => {
@@ -175,21 +184,9 @@ chrome.alarms.onAlarm.addListener((alarm) => {
 chrome.runtime.onMessage.addListener((message: PopupRequest | LookupRequest, _sender, sendResponse) => {
   if (message.type === 'getEvaluation') {
     void (async () => {
-      let evaluation = tabEvaluations.get(message.tabId) ?? null;
-      if (!evaluation) {
-        // Fall back to the persistent cache via the tab's URL — covers SW
-        // restart and the brief window between cache write and tabEvaluations.set.
-        try {
-          const tab = await chrome.tabs.get(message.tabId);
-          const domain = eligibleDomainForUrl(tab.url);
-          if (domain) {
-            evaluation = await getCachedEvaluation(domain);
-            if (evaluation) tabEvaluations.set(message.tabId, evaluation);
-          }
-        } catch {
-          /* tab gone */
-        }
-      }
+      // Resolve the current URL and await a fresh or cached result. This also
+      // covers installation, worker restarts, and opening the popup mid-request.
+      const evaluation = await evaluateTab(message.tabId, invalidateTab(message.tabId), false);
       const response: PopupResponse = { evaluation };
       sendResponse(response);
     })();
@@ -198,7 +195,15 @@ chrome.runtime.onMessage.addListener((message: PopupRequest | LookupRequest, _se
   if (message.type === 'runLookup') {
     void (async () => {
       try {
+        const tab = await chrome.tabs.get(message.tabId);
+        if (!message.domain || eligibleDomainForUrl(tab.url) !== message.domain) {
+          throw new Error('This tab changed sites. Close and reopen the popup before looking it up.');
+        }
         const report = await runCachedLookup(message.domain);
+        const current = await chrome.tabs.get(message.tabId);
+        if (eligibleDomainForUrl(current.url) !== message.domain) {
+          throw new Error('This tab changed sites. Close and reopen the popup to see its current status.');
+        }
         const response: LookupResponse = { report };
         sendResponse(response);
       } catch (err) {

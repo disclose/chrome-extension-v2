@@ -242,6 +242,7 @@ main {
   animation: dio-spin 0.7s linear infinite;
 }
 [data-state="unknown"] .hero__spinner { display: inline-block; }
+.hero__spinner[hidden] { display: none; }
 
 .hero__text { min-width: 0; }
 

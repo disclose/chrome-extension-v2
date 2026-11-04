@@ -1,65 +1,57 @@
-# Chrome Web Store — publish runbook
+# Chrome Web Store release materials
 
-Artifacts + steps to get the disclose.io extension live. Sourced against the
-current (July 2026) Chrome Web Store rules.
+Release package for **disclose.io v0.2.2**, owned by **casey@disclose.io**.
+Submission status must be checked in the
+[Chrome Web Store developer dashboard](https://chrome.google.com/webstore/devconsole/).
+Repository documentation alone is not evidence that an item is in review.
 
-## ⏸ STATUS — paused 2026-07-05 (RESUME HERE)
+## Files
 
-**Done & shipped:** disclose.io brand alignment + this store package are merged
-to `main` (PR #2). Privacy policy is **LIVE** at
-https://disclose-extension-privacy.pages.dev/. `bun run package` →
-`artifacts/disclose-extension-vX.Y.Z.zip` builds green from `main`. Publisher account =
-**casey@disclose.io**.
+- `LISTING.md`: listing copy, permission explanations, privacy declarations and reviewer instructions.
+- `PRIVACY.md` / `privacy.html`: matching current privacy policies.
+- `screenshots/*.png`: 1280×800 screenshots of the current popup on a branded background.
+- `promo-tile-440x280.png`: small promotional tile.
+- `make-assets.ts`: regenerates the images from `dist/`.
+- `SUBMISSION-RUNBOOK.md`: upload and submission steps.
 
-**Blocked on:** the manual dashboard submission. Chrome forbids extension-based
-automation on the Web Store domain (*"The extensions gallery cannot be scripted"*),
-so computer-use CANNOT drive it — the first submission is human-only.
+## Build and verify
 
-**Resume:** sign into https://chrome.google.com/webstore/devconsole/ as
-casey@disclose.io and follow "Publish steps" below — upload the versioned extension zip,
-paste from `LISTING.md`, add `screenshots/*.png` + `promo-tile-440x280.png`, set
-the privacy URL, submit.
+```sh
+bun install --frozen-lockfile
+bun run verify
+bun run test
+bun run test:live
+bun run package
+bun store/make-assets.ts
+```
 
-**Automation for later:** once the item exists + OAuth is set up, *version updates*
-can go via the Chrome Web Store API (package → upload → publish), no dashboard.
-The first listing (metadata + screenshots) is dashboard-only regardless.
+The versioned ZIP and `SHA256SUMS` appear in `artifacts/`. Test the same source and
+package that will be uploaded. Inspect the screenshots after regeneration.
 
-## In this folder
-- `PRIVACY.md` / `privacy.html` — the privacy policy (host the HTML at a public URL)
-- `LISTING.md` — name, description, single-purpose, permission justifications,
-  data-use disclosure answers (paste into the dashboard)
-- `make-assets.ts` — regenerates the store screenshots + promo tile
-- `screenshots/*.png` — 1280×800 store screenshots
-- `promo-tile-440x280.png` — small promo tile
-- the package itself: `bun run package` at repo root → `artifacts/disclose-extension-vX.Y.Z.zip`
+`test:live` loads the built extension into an isolated Chromium profile and uses
+the real directory and lookup APIs. It checks a directory match, displayed
+contacts, ETag revalidation with HTTP 304, and the absence of cookie/authorization
+credentials on API requests. Screenshots and a JSON result are saved in
+`release-evidence/`.
 
-## Prerequisites (the human parts)
-1. **Merge PR #1** and build from `main` (finalized brand build).
-2. ✅ **Owning account** — **casey@disclose.io** (dev account created 2026-07-05).
-   Later option for org continuity: convert/transfer to a disclose.io **Group
-   Publisher** so ownership isn't tied to one person (can be done after the
-   item's first publish).
-3. **Developer registration** — one-time **$5** fee, covers up to 20 extensions
-   (pay once on `casey@disclose.io` if not already done).
-4. ✅ **Privacy policy hosted** — LIVE at
-   **https://disclose-extension-privacy.pages.dev/** (Cloudflare Pages project
-   `disclose-extension-privacy`, deployed from `privacy.html`). Already in
-   `LISTING.md`. Optional: move to a `disclose.io/extension-privacy` path and
-   swap the URL before submitting.
+## Before submission
 
-## Publish steps
-1. `bun run package` → `artifacts/disclose-extension-vX.Y.Z.zip`.
-2. developer.chrome.com → Web Store dashboard → **New item** → upload the zip.
-3. Fill the listing from `LISTING.md` (name, summary, description, category,
-   single purpose).
-4. Upload assets: 128 icon, `screenshots/*.png`, `promo-tile-440x280.png`.
-5. **Privacy practices** tab: enter the hosted privacy URL, paste the permission
-   justifications, and tick the data-use disclosures per `LISTING.md`.
-6. Submit for review. Typical window: **2–5 business days**. Top rejection
-   causes: over-broad permissions, missing privacy policy, description mismatch —
-   all pre-addressed here (watch the `tabs` justification).
+1. Confirm the dashboard is signed in as **casey@disclose.io**, and reuse an
+   existing disclose.io listing if one exists.
+2. Complete any required developer registration, account verification or terms
+   acceptance. Any fee and current item limit are shown in the dashboard.
+3. Use the public policy at
+   **https://github.com/disclose/chrome-extension-v2/blob/main/store/PRIVACY.md**
+   after the release changes are merged. Verify the live policy before submission.
+   The older Cloudflare privacy page still serves the July 2026 draft.
+4. Upload `artifacts/disclose-extension-v0.2.2.zip`, enter the listing from
+   `LISTING.md`, and upload the assets.
+5. Verify the privacy declarations against the package, save, and submit for review.
 
-## After approval
-- Future updates: bump `manifest.json` version, `bun run package`, upload a new
-  package (updates can be automated later via the CWS API; first publish is
-  dashboard-only).
+Browser extension automation may be blocked on Chrome Web Store pages. Native
+computer use can still operate the dashboard; a browser API restriction does not
+mean the submission must be manual. The dashboard may require account-owner
+interaction for authentication, payment or legal terms.
+
+After submission, record the item ID, status and listing URL from the dashboard.
+Google's review is a separate step before the public listing becomes available.

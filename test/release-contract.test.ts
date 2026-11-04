@@ -8,9 +8,19 @@ describe('release contract', () => {
   test('keeps package and Chrome manifest versions synchronized', async () => {
     const packageJson = JSON.parse(await readFile(path.join(ROOT, 'package.json'), 'utf8'));
     const manifest = JSON.parse(await readFile(path.join(ROOT, 'manifest.json'), 'utf8'));
-    expect(packageJson.version).toBe('0.2.1');
+    expect(packageJson.version).toBe('0.2.2');
     expect(manifest.version).toBe(packageJson.version);
     expect(manifest.manifest_version).toBe(3);
+  });
+
+  test('meets Chrome Web Store description and summary limits', async () => {
+    const manifest = JSON.parse(await readFile(path.join(ROOT, 'manifest.json'), 'utf8'));
+    const listing = await readFile(path.join(ROOT, 'store/LISTING.md'), 'utf8');
+    expect(manifest.description.length).toBeGreaterThan(0);
+    expect(manifest.description.length).toBeLessThanOrEqual(132);
+    const summary = listing.match(/## Summary[^\n]*\n+([^\n]+)/i)?.[1];
+    expect(summary).toBeDefined();
+    expect(summary!.length).toBeLessThanOrEqual(132);
   });
 
   test('keeps the downloadable archive versioned and checksum-backed', async () => {

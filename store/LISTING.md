@@ -1,78 +1,101 @@
 # Chrome Web Store listing: disclose.io
 
-Everything the dashboard asks for, drafted and ready to paste. Keep disclose.io
-lowercase per the brand style guide.
+Listing text and reviewer declarations for version 0.2.2. Keep disclose.io lowercase.
+The dashboard is the source of truth for submission status.
 
 ## Product name
 disclose.io
 
 ## Summary (≤132 chars)
-See if a website welcomes security researchers: VDP, safe harbor, and disclosure maturity at a glance, from the disclose.io directory.
+See a site's vulnerability disclosure policy, safe harbor, and maturity at a glance, with data from disclose.io.
 
 ## Category
-Developer Tools (alt: Productivity)
+Developer Tools
 
 ## Detailed description
-disclose.io tells you, at a glance, whether the website you're on has a safe,
-clear way to report security problems.
+disclose.io shows whether the website you're viewing is listed in the disclose.io
+vulnerability disclosure directory, and how its published disclosure program is rated.
 
-The moment you land on a site, the toolbar icon shows its vulnerability-
-disclosure posture, pulled live from the disclose.io directory:
+As you browse, the toolbar icon shows the current site's disclosure posture:
 
-• Best-practice (Level 5): a clear, researcher-safe disclosure program
-• Welcomes reports with safe harbor: protects good-faith research
-• Has a report channel: a security contact, without full safe harbor
-• Not listed: no published way to report security problems
+• Best-practice disclosure: the directory's highest maturity tier
+• Full safe harbor: published protection for good-faith security research
+• A report channel: a published security contact or policy
+• Not listed: no matching program found in the directory
 
-Open the popup for the details: safe harbor, bug bounty, published policy, and
-security.txt, plus the site's disclosure-maturity score. One click runs a deeper
-security-contact lookup via lookup.disclose.io.
+Open the popup for safe harbor, bug bounty, policy and security.txt details, plus
+the program's disclosure-maturity score when available. Click to run a deeper
+security-contact lookup via lookup.disclose.io. A missing directory entry does
+not establish that a site has no disclosure policy; a live lookup may find one.
 
-Privacy-first by design: the extension only ever sends the current site's
-**domain** to disclose.io, never your URL or page contents. The optional live
-lookup uses a random browser-session token for fair-use limits; there is no
-account, cross-browser tracking, or advertising.
+The extension reads the active tab's URL locally to derive its domain. Automatic
+directory checks send the domain to the directory's public API at
+api.disclosebot.io; they never send the full URL, path, query string or page
+contents. An optional live lookup sends the domain and a random browser-session
+token to lookup.disclose.io for fair-use limits. No account, advertising or
+cross-browser tracking.
 
-disclose.io is a vendor-agnostic, nonprofit project driving the adoption of
-vulnerability-disclosure best practice: bilateral safe harbor, plain-language
-terms, and a recognizable mark of good faith between hackers and organizations.
+disclose.io is a vendor-agnostic, nonprofit project supporting vulnerability
+disclosure best practice: bilateral safe harbor, plain-language terms and a
+recognizable mark of good faith between researchers and organizations.
 
-Open source: github.com/disclose/chrome-extension-v2
+Directory data is a disclosure signal, not a security audit or authorization to
+test a website. Check the program's current policy and scope before research.
+
+Open source: https://github.com/disclose/chrome-extension-v2
 
 ## Single purpose (required field)
-Show the visited site's vulnerability-disclosure posture: VDP, safe harbor, and
-disclosure maturity, using data from the disclose.io directory.
+Show the current site's vulnerability-disclosure posture, safe harbor and maturity
+using the disclose.io directory, with an optional live security-contact lookup.
 
-## Permission justifications (reviewers read these)
-- **tabs**: to read the active tab's URL so the extension can derive the site's
-  domain and update the badge as you move between tabs. Only the domain is used;
-  URL/path/content are never stored or sent.
-- **storage**: cache directory results locally to avoid repeat network requests.
-- **alarms**: schedule periodic cache refresh/expiry so results stay current
-  without polling.
-- **host_permissions: directory.disclose.io, lookup.disclose.io** are the only two
-  hosts the extension contacts, to look up disclosure status and run lookups.
+## Permission justifications
+- **tabs**: read the active tab's URL locally to derive its registrable domain,
+  update its toolbar badge on navigation or activation, and show that domain's
+  disclosure result in the popup. Full URLs, paths and query strings are not sent
+  to the lookup services. The extension does not read page contents.
+- **storage**: cache domain-keyed directory and lookup results, and a random
+  lookup fair-use token, in `chrome.storage.session`. These are cleared when the
+  browser session ends and are not synced across devices.
+- **alarms**: periodically remove expired directory-cache entries from session
+  storage. This alarm does not poll the visited site or run live lookups.
+- **declarativeNetRequestWithHostAccess**: apply a packaged static rule that sets
+  the Origin header to `https://directory.disclose.io` for requests to the
+  disclose.io tenant's `/v1/p/directories/adf701` API path only. The service
+  requires this Origin for its public JSON API. The rule does not access or modify visited sites.
+- **host_permissions — `https://api.disclosebot.io/*`**: fetch program search
+  results and program details from the disclose.io directory's public API.
+- **host_permissions — `https://lookup.disclose.io/*`**: run the user's requested
+  deeper security-contact lookup and revalidate cached responses.
 
-> ⚠️ Review-risk note: `tabs` is a broad permission and is the field most likely
-> to draw a reviewer question. It is genuinely required for the badge-on-tab-
-> switch behavior (which observes all tabs, not just the active one). If we ever
-> want to de-risk, dropping the auto-badge and using `activeTab` + host
-> permissions instead would remove `tabs`, a product tradeoff, not a bug.
+## Remote code
+**No.** All executable JavaScript and the static network rule ship in the ZIP.
+The extension fetches JSON data from the two API hosts; it does not download or
+execute remote code.
 
-## Data-use disclosure (dashboard "Privacy practices" tab)
-Declare truthfully. The 2026 rules (enforced Aug 1 2026) require this:
-- **Data collected:** *Web history*, the extension reads the domain of the site
-  you're viewing to check it against the directory. (No authentication info, no
-  personal communications, no financial/health/location data, no personal IDs.)
-- **Purpose:** app functionality only (the disclosure-status check).
-- **Not sold to third parties:** ✅ affirm.
-- **Not used or transferred for purposes unrelated to the single purpose:** ✅ affirm.
-- **Not used for creditworthiness / lending:** ✅ affirm.
-- **Privacy policy URL:** **https://disclose-extension-privacy.pages.dev/** (LIVE, deployed from `store/privacy.html`). Optional: move to a disclose.io path
-  (e.g. `disclose.io/extension-privacy`) before submission and swap this URL.
+## Data-use disclosure (dashboard Privacy practices tab)
+- **Data collected:** Web history, because the active site's domain is sent to
+  the directory API for a user-facing disclosure check. The extension reads the
+  tab URL locally but does not send the full URL, path, query string or page content.
+- The optional live lookup also sends a random, session-only fair-use identifier.
+  The receiving services receive normal connection metadata, such as the IP
+  address and request headers, as described in the privacy policy.
+- **Purpose:** app functionality and service reliability/abuse prevention only.
+- **Not sold to third parties:** affirm.
+- **Not used or transferred for purposes unrelated to the single purpose:** affirm.
+- **Not used for creditworthiness / lending:** affirm.
+- **Privacy policy URL:** `https://github.com/disclose/chrome-extension-v2/blob/main/store/PRIVACY.md`.
+  This public repository policy is the launch policy. The older Cloudflare page
+  still serves the July 2026 draft and must not be used for version 0.2.2.
 
-## Assets checklist
-- [x] Store icon 128×128: `dist/icons/level5-128.png` (or a neutral brand mark)
-- [x] Screenshots 1280×800: `store/screenshots/*.png`
-- [x] Small promo tile 440×280: `store/promo-tile-440x280.png`
-- [x] Privacy policy hosted: https://disclose-extension-privacy.pages.dev/
+## Reviewer test instructions
+No login or credentials are required. Open a public HTTPS site, click the
+extension icon and confirm the directory result or a clear unavailable state.
+For a site without a directory match, click **Look this up** to run the optional
+live lookup. Try a browser settings page to check the unsupported-page state.
+API availability and directory records may change; an API failure should show an
+error rather than claim a site has no disclosure program.
+
+## Assets
+- Store icon: `dist/icons/level5-128.png`, included in the release ZIP.
+- Screenshots: `store/screenshots/*.png` (1280×800).
+- Small promo tile: `store/promo-tile-440x280.png` (440×280).

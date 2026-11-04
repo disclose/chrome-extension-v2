@@ -336,11 +336,11 @@ function renderLookupContacts(report: LookupReport): void {
   show(section, true);
 }
 
-async function runLiveLookup(domain: string): Promise<void> {
+async function runLiveLookup(domain: string, tabId: number): Promise<void> {
   setLookupButton('Looking up…', true);
   setText($('lookup-status'), 'Asking lookup.disclose.io…');
   const startedAt = Date.now();
-  const message: LookupRequest = { type: 'runLookup', domain };
+  const message: LookupRequest = { type: 'runLookup', tabId, domain };
   try {
     const response = (await chrome.runtime.sendMessage(message)) as LookupResponse | undefined;
     if (!response || !response.report) {
@@ -351,9 +351,7 @@ async function runLiveLookup(domain: string): Promise<void> {
     const elapsed = Date.now() - startedAt;
     setText(
       $('lookup-status'),
-      elapsed > 5000
-        ? `Done. First lookup is slow because the server cold-started. Re-running it should be much faster.`
-        : `Done in ${(elapsed / 1000).toFixed(1)}s`,
+      `Done in ${(elapsed / 1000).toFixed(1)}s`,
     );
   } catch (err) {
     setText(
@@ -366,22 +364,34 @@ async function runLiveLookup(domain: string): Promise<void> {
 }
 
 async function init(): Promise<void> {
+  // Prevent clicks before the current tab's evaluation has resolved.
+  setLookupButton('Checking…', true);
   const tab = await getActiveTab();
   if (!tab || tab.id === undefined) {
-    renderHero('unknown');
+    renderUnavailable('This page cannot be checked', 'Open a public website to check its disclosure status.');
     setLookupButton('Look this up', true);
     return;
   }
 
-  const evaluation = await getEvaluation(tab.id);
+  let evaluation: TabEvaluation | null;
+  try {
+    evaluation = await getEvaluation(tab.id);
+  } catch {
+    evaluation = null;
+  }
   if (!evaluation) {
-    renderHero('unknown');
+    renderUnavailable('Directory check unavailable', 'Close and reopen this popup to try again.');
     setLookupButton('Look this up', true);
     return;
   }
 
   renderHero(evaluation.iconState, evaluation.program);
   renderDetails(evaluation.program);
+  if (evaluation.status === 'ineligible') {
+    renderUnavailable('This page cannot be checked', 'Open a public website to check its disclosure status.');
+  } else if (evaluation.status === 'error') {
+    renderUnavailable('Directory check unavailable', 'The directory could not be reached. You can still run a live lookup, or reopen this popup to retry.');
+  }
 
   setLookupButton(
     evaluation.iconState === 'none' || evaluation.status === 'unmatched'
@@ -398,8 +408,16 @@ async function init(): Promise<void> {
 
   ($('lookup-btn') as HTMLButtonElement).addEventListener('click', () => {
     if (!evaluation.domain) return;
-    void runLiveLookup(evaluation.domain);
+    void runLiveLookup(evaluation.domain, tab.id!);
   });
+}
+
+function renderUnavailable(headline: string, detail: string): void {
+  renderHero('unknown');
+  setText($('hero-headline'), headline);
+  setText($('hero-detail'), detail);
+  const spinner = document.querySelector<HTMLElement>('.hero__spinner');
+  if (spinner) show(spinner, false);
 }
 
 document.addEventListener('DOMContentLoaded', () => {

@@ -1,4 +1,5 @@
 import type { LookupReport } from '../types';
+import { version } from '../../manifest.json';
 
 const LOOKUP_BASE_URL = 'https://lookup.disclose.io';
 const LOOKUP_TIMEOUT_MS = 30000;
@@ -53,12 +54,13 @@ export async function runLookup(
   try {
     const headers: Record<string, string> = {
       'Content-Type': 'application/json',
-      'X-Lookup-Client': 'chrome-extension/0.2.1',
+      'X-Lookup-Client': `chrome-extension/${version}`,
     };
     if (options.lookupSessionId) headers['X-Lookup-Session'] = options.lookupSessionId;
     if (options.etag) headers['If-None-Match'] = options.etag;
     const response = await fetch(`${baseUrl}/api/lookup`, {
       method: 'POST',
+      credentials: 'omit',
       headers,
       body: JSON.stringify({ input: domain }),
       signal: controller.signal,

@@ -34,7 +34,7 @@ type Shot = {
 
 const SHOTS: Shot[] = [
   {
-    state: 'level5', headline: '✨ Best-practice security disclosure',
+    state: 'level5', headline: 'Best-practice security disclosure',
     detail: 'This site is recognized at Maturity Level 5 — a clear, researcher-safe way to report security issues.',
     icon: '✦', pill: 'In directory · L5', level: 'Level 5', score: '95',
     chips: [{label:'Safe harbor',yes:true},{label:'Bug bounty',yes:true},{label:'Policy',yes:true},{label:'security.txt',yes:true}],
@@ -42,19 +42,19 @@ const SHOTS: Shot[] = [
     sub: 'The toolbar badge shows every site’s disclosure posture the moment you land on it.',
   },
   {
-    state: 'safe-harbor', headline: '✓ Welcomes security reports — researcher-safe',
+    state: 'safe-harbor', headline: 'Welcomes security reports — researcher-safe',
     detail: 'This site accepts security research and protects researchers acting in good faith.',
     icon: '✓', pill: 'In directory',
-    chips: [{label:'Safe harbor',yes:true},{label:'Bug bounty',yes:false},{label:'Policy',yes:true},{label:'security.txt',yes:true}],
+    chips: [{label:'Safe harbor',yes:true},{label:'No bounty',yes:false},{label:'Policy',yes:true},{label:'security.txt',yes:true}],
     caption: 'VDP, safe harbor & maturity — at a glance',
     sub: 'One popup: safe harbor, bug bounty, published policy and security.txt, straight from the disclose.io directory.',
   },
   {
-    state: 'none', headline: '⚠ No published way to report security problems',
-    detail: 'This site is not in the disclose.io directory. Researchers may have nowhere clear to send security findings.',
-    icon: '?', pill: 'Not listed', chips: [],
-    caption: 'Spot the sites with no safe way to report bugs',
-    sub: 'When a site isn’t in the directory, you’ll know — and can run a deeper lookup with one click.',
+    state: 'none', headline: 'Not found in the disclose.io directory',
+    detail: 'The directory has no matching entry. Run a live lookup to check for a published security contact.',
+    icon: '⚠', pill: 'Not listed', chips: [],
+    caption: 'Find disclosure programs beyond the directory',
+    sub: 'No directory match? Run a deeper security-contact lookup with one click.',
   },
 ];
 
@@ -70,13 +70,13 @@ function stage(s: Shot): string {
     html,body{width:1280px;height:800px;overflow:hidden}
     body{font-family:'Noto Sans',system-ui,-apple-system,"Segoe UI",sans-serif;
       background:radial-gradient(120% 120% at 15% 10%, #7e57c2 0%, #673ab6 42%, #4c1d95 100%);
-      display:flex;align-items:center;gap:40px;padding:0 92px}
-    .copy{flex:1 1 0;color:#fff;max-width:560px}
+      display:grid;grid-template-columns:480px 496px;align-items:center;gap:64px;padding:0 80px}
+    .copy{color:#fff;min-width:0;max-width:480px}
     .kicker{display:flex;align-items:center;gap:12px;font-size:22px;font-weight:600;letter-spacing:.01em;opacity:.95;margin-bottom:26px}
     .kicker svg{width:40px;height:40px}
     .copy h2{font-size:46px;line-height:1.08;font-weight:800;letter-spacing:-0.02em}
     .copy p{font-size:22px;line-height:1.5;opacity:.9;margin-top:22px;max-width:500px}
-    .device{flex:none;width:376px;transform:scale(1.32);transform-origin:center right;
+    .device{width:376px;transform:scale(1.32);transform-origin:center left;
       border-radius:16px;overflow:hidden;background:#fff;
       box-shadow:0 30px 70px rgba(20,8,50,.45),0 6px 18px rgba(20,8,50,.35)}
     iframe{width:376px;border:0;display:block}
@@ -105,19 +105,33 @@ for (const s of SHOTS) {
     set('hero-headline', s.headline); set('hero-detail', s.detail); set('hero-icon', s.icon);
     const pill = document.getElementById('status-pill') as HTMLElement;
     pill.hidden = false; pill.textContent = s.pill;
-    if (s.state === 'none') pill.className = 'pill pill--neutral';
+    pill.className = s.state === 'none' ? 'pill pill--neutral'
+      : s.state === 'level5' ? 'pill pill--solid' : 'pill';
     if (s.level) {
       const m = document.getElementById('maturity') as HTMLElement; m.hidden = false;
       set('maturity-level', s.level); set('maturity-score', s.score ?? '');
     }
     const chips = document.getElementById('chips') as HTMLElement;
     if (s.chips.length) { chips.hidden = false; chips.innerHTML = s.chipHtml; }
-    // Turn the primary button into the plain "Look this up" resting state.
+    const details = document.getElementById('details') as HTMLElement;
+    details.hidden = s.state === 'none';
+    const lookup = document.getElementById('lookup-btn') as HTMLButtonElement;
+    lookup.textContent = s.state === 'none' ? 'Look this up' : 'Re-scan with full lookup';
   }, { ...s, chipHtml: chipHtml(s.chips) } as any);
   // size the iframe to its content
   const h = await frame.evaluate(() => document.body.scrollHeight);
   await page.$eval('#pop', (el, h) => { (el as HTMLElement).style.height = `${h}px`; }, h);
   await page.waitForTimeout(120);
+  const geometry = await page.evaluate(() => {
+    const copy = document.querySelector('.copy')!.getBoundingClientRect();
+    const device = document.querySelector('.device')!.getBoundingClientRect();
+    return { copyRight: copy.right, deviceLeft: device.left, top: device.top,
+      bottom: device.bottom, right: device.right };
+  });
+  if (geometry.copyRight + 24 > geometry.deviceLeft || geometry.top < 16
+      || geometry.bottom > 784 || geometry.right > 1264) {
+    throw new Error(`Screenshot ${s.state} has overlapping or clipped content: ${JSON.stringify(geometry)}`);
+  }
   const name = `${String(i).padStart(2, '0')}-${s.state}.png`;
   await page.screenshot({ path: path.join(OUT, 'screenshots', name) });
   await page.close();
