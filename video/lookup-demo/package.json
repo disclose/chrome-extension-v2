@@ -1,0 +1,19 @@
+{
+  "name": "disclose-lookup-demo",
+  "private": true,
+  "version": "1.0.0",
+  "type": "module",
+  "scripts": {
+    "studio": "remotion studio src/index.ts",
+    "render:source": "remotion render src/index.ts LookupDemo out/lookup-demo-source.mp4 --codec=h264 --crf=18",
+    "render": "bun run render:source && ffmpeg -y -i out/lookup-demo-source.mp4 -vf scale=in_range=full:out_range=tv -c:v libx264 -profile:v high -level:v 4.0 -preset slow -crf 20 -pix_fmt yuv420p -colorspace bt709 -color_primaries bt709 -color_trc bt709 -color_range tv -movflags +faststart -an out/lookup-demo.mp4",
+    "poster": "remotion still src/index.ts LookupDemo out/lookup-demo-poster.png --frame=330"
+  },
+  "dependencies": {
+    "@remotion/cli": "^4.0.508",
+    "react": "^19.2.8",
+    "react-dom": "^19.2.8",
+    "remotion": "^4.0.508",
+    "zod": "^4.4.3"
+  }
+}

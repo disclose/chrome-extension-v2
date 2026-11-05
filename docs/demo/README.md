@@ -1,4 +1,23 @@
-# Popup demo
+# Extension demos
+
+## Directory and maturity lookup
+
+The current focused demo uses captures from the built v0.2.0 extension running
+against the live `directory.disclose.io` and `lookup.disclose.io` APIs in a
+disposable Chrome for Testing profile. Its main story is the directory record:
+membership, maturity score, policy, safe harbor, bounty, and security.txt.
+
+| File | Notes |
+|------|-------|
+| `lookup-demo.mp4` | 1280×720, 19s, H.264/yuv420p, muted — linked from the top-level README |
+| `lookup-demo-poster.png` | README poster from the disclosure-maturity score scene |
+
+It keeps the official disclose.io logo in the corner, gives directory maturity
+most of the runtime, and treats the optional first-party route lookup as a short
+supporting beat. The reproducible Remotion composition and verified source captures live in
+[`video/lookup-demo`](../../video/lookup-demo/).
+
+## Historical popup walkthrough
 
 A short screen recording of the popup, driven against the **built** extension
 (`dist/`) using the same mocked `directory.disclose.io` / `lookup.disclose.io`
@@ -9,7 +28,7 @@ backend the test suite uses — so it's the real UI, not a mockup.
 | `disclose-popup-demo.mp4` | 752×1280, ~16.5s, H.264 — best for sharing |
 | `disclose-popup-demo.gif` | 376px, 12fps — inline preview (embedded in the top-level README) |
 
-## What it shows
+### What it shows
 
 1. **Level 5** — celebrate gradient, `✦` hero chip, "In directory · L5" pill, maturity 95, four attribute chips
 2. **Safe harbor** — "Welcomes security reports — researcher-safe", maturity 65
@@ -20,7 +39,7 @@ backend the test suite uses — so it's the real UI, not a mockup.
 
 Each state opens with the natural "Checking…" spinner before it resolves.
 
-## Regenerating
+### Regenerating
 
 ```sh
 bun run build          # ensure dist/ is current
